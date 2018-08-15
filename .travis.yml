@@ -28,12 +28,11 @@ addons:
     - perl
 
 before_script:
-  - tar zxf ytalk-*.tar.gz
+  - test -f ytalk-* && tar zxf ytalk-*.tar.gz
 
 
 
 # Actually check if it works
 script:
   - autoreconf -f -i && ./configure && make && make check
-  - cd ytalk-*
-  - ./configure && make && make check
+  - if [ -f ytalk-* ]; then cd ytalk-*; ./configure && make && make check; fi
