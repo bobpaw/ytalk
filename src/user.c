@@ -18,6 +18,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "menu.h"
 #include "mem.h"
@@ -40,30 +41,24 @@ static ylong daemon_id;		/* running daemon ID counter */
 
 static int passwd_opened = 0;
 
-static char *
-user_name(uid)
-	ylong uid;
-{
+static char * user_name(ylong uid) {
 	register struct passwd *pw;
+   char* c;
+   if ((c = getenv("USER")) != NULL) return strdup(c);
 	passwd_opened = 1;
 	if ((pw = getpwuid(uid)) == NULL)
 		return NULL;
 	return pw->pw_name;
 }
 
-static void
-close_passwd()
-{
+static void close_passwd(void) {
 	if (passwd_opened) {
 		endpwent();
 		passwd_opened = 0;
 	}
 }
 
-void
-generate_full_name(user)
-	yuser *user;
-{
+void generate_full_name(yuser *user) {
 	register char *c, *d, *ce;
 
 	if (user->full_name == NULL)
@@ -87,10 +82,7 @@ generate_full_name(user)
 	*c = '\0';
 }
 
-static void
-assign_key(user)
-	yuser *user;
-{
+static void assign_key(yuser *user) {
 	register ychar old;
 	static ychar key = 'a';
 
@@ -118,10 +110,7 @@ assign_key(user)
 /*
  * Initialize user data structures.
  */
-void
-init_user(vhost)
-	char *vhost;
-{
+void init_user(char *vhost) {
 	char *my_name, *my_vhost;
 	char my_host[100];
 
@@ -180,10 +169,7 @@ init_user(vhost)
 /*
  * Create a new user record.
  */
-yuser *
-new_user(name, hostname, tty)
-	char *name, *hostname, *tty;
-{
+yuser *new_user(char *name, char *hostname, char *tty) {
 	register yuser *out, *u;
 	ylong addr;
 
@@ -237,10 +223,7 @@ new_user(name, hostname, tty)
 	return out;
 }
 
-static void
-clear_user(user)
-	yuser *user;
-{
+static void clear_user(yuser *user) {
 	unsigned int i;
 	free_mem(user->user_name);
 	free_mem(user->host_name);
@@ -273,10 +256,7 @@ clear_user(user)
 	free_mem(user);
 }
 
-void
-free_user(user)
-	yuser *user;
-{
+void free_user(yuser *user) {
 	register yuser *u;
 
 	/* remove him from the various blacklists */
@@ -327,11 +307,7 @@ free_user(user)
  * host_addr is (ylong)-1 then it is not checked.  If pid is (ylong)-1 then
  * it is not checked.
  */
-yuser *
-find_user(name, host_addr, pid)
-	char *name;
-	ylong host_addr, pid;
-{
+yuser * find_user(char *name, ylong host_addr, ylong pid) {
 	register yuser *u;
 
 	for (u = user_list; u; u = u->unext)
@@ -355,9 +331,7 @@ find_user(name, host_addr, pid)
 /*
  * Clear out the user list, freeing memory as we go.
  */
-void
-free_users()
-{
+void free_users(void) {
 	yuser *u, *un;
 	for (u = user_list; u != NULL;) {
 		un = u->unext;

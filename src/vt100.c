@@ -21,11 +21,7 @@
 
 #include "header.h"
 
-void
-vt100_process(user, data)
-	yuser *user;
-	char data;
-{
+void vt100_process(yuser *user, char data) {
 	int i;
 
 	if (data >= '0' && data <= '9') {

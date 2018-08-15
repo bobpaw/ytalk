@@ -1,6 +1,3 @@
-'''
-'''  YTalk Version @VERSION@
-'''
 .de Sh
 .br
 .ne 5
@@ -181,7 +178,7 @@ windowed message like:
 .PP
 and he will be prompted for a yes/no answer.  This, in my opinion, is much
 preferable to blitting the announcement message and messing up user B's
-screen. The command-line option "-i" turns this off.
+screen. The command-line option "\-i" turns this off.
 
 .SH RUNTIME OPTIONS
 When you select Options off of the main menu, you are given the opportunity

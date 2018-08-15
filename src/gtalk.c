@@ -24,11 +24,7 @@
 #include "mem.h"
 #include "gtalk.h"
 
-void
-gtalk_process(user, data)
-	yuser *user;
-	ychar data;
-{
+void gtalk_process(yuser * user, ychar data) {
 	if (user->gt.len >= (MAXBUF - 1)) {
 		/* If we run out of buffer space, just forget it.
 		 * There's no reason reason to read >4K of version string.
@@ -63,11 +59,7 @@ gtalk_process(user, data)
 	user->gt.buf[user->gt.len++] = data;
 }
 
-char *
-gtalk_parse_version(str, ukill)
-	char *str;
-	ychar ukill;
-{
+char * gtalk_parse_version(char * str, ychar ukill) {
 	char *p, *e;
 	p = strchr(str, ' ');
 	if (p != NULL)

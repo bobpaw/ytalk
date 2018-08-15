@@ -19,6 +19,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 
 #ifdef HAVE_FCNTL_H
@@ -30,10 +31,7 @@
 #endif
 
 #if !defined(HAVE_OPENPTY) || defined(YTALK_TEST)
-int
-getpty(name)
-	char *name;
-{
+int getpty(char *name) {
 	register int pty, tty;
 	char *tt;
 

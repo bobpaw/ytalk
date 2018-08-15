@@ -320,9 +320,9 @@ extern int what_term();		/* term.c */
 extern void end_term();		/* term.c */
 extern int open_term( /* yuser, title */ );	/* term.c */
 extern void close_term( /* yuser */ );	/* term.c */
-extern void addch_term( /* yuser, ch */ );	/* term.c */
-extern void move_term( /* yuser, y, x */ );	/* term.c */
-extern void fill_term( /* yuser, y1, x1, y2, x2, c */ ); /* term.c */
+extern void addch_term(register yuser *user, register ychar c);	/* term.c */
+extern void move_term();	/* term.c */
+extern void fill_term(yuser *user, int y1, int x1, int y2, int x2, ychar c);/* term.c */
 extern void clreol_term( /* yuser */ );	/* term.c */
 extern void clreos_term( /* yuser */ );	/* term.c */
 extern void scroll_term( /* yuser */ );	/* term.c */
@@ -380,8 +380,8 @@ extern void rering_all();	/* comm.c */
 
 extern void init_socket();	/* socket.c */
 extern void close_all();	/* socket.c */
-extern int send_dgram( /* user, type */ );	/* socket.c */
-extern int send_auto( /* type */ );	/* socket.c */
+extern int send_dgram(yuser * user, u_char type);	/* socket.c */
+extern int send_auto(u_char type);	/* socket.c */
 extern void kill_auto();	/* socket.c */
 extern int newsock( /* yuser */ );	/* socket.c */
 extern int connect_to( /* yuser */ );	/* socket.c */
@@ -399,6 +399,6 @@ extern void winch_exec();	/* exec.c */
 
 extern int getpty( /* char* */ );	/* getpty.c */
 
-extern void vt100_process( /* yuser, char */ );	/* vt100.c */
+extern void vt100_process(yuser *user, char data);	/* vt100.c */
 
 /* EOF */

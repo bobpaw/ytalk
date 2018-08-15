@@ -18,6 +18,7 @@
  *
  */
 
+#include "config.h"
 #ifdef YTALK_DEBUG
 typedef struct __mem_list {
 	yaddr addr;

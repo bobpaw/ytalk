@@ -18,6 +18,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "mem.h"
 
@@ -36,7 +37,7 @@ int show_user_list();
  * this source.
  */
 
-static void main_menu_sel();
+static void main_menu_sel(ychar key);
 menu_item *menu_ptr = NULL;	/* current menu in processing */
 static int menu_len;		/* number of items in current menu */
 static int menu_long;		/* longest item of current menu */
@@ -51,15 +52,15 @@ extern void raw_term();		/* our raw interface to the terminal */
 static menu_item main_menu[] = {
 	{"Main Menu",			NULL,		' '},
 	{"",				NULL,		' '},
-	{"add a user",			main_menu_sel,	'a'},
-	{"delete a user",		main_menu_sel,	'd'},
-	{"kill all unconnected",	main_menu_sel,	'k'},
-	{"options",			main_menu_sel,	'o'},
-	{"rering all",			main_menu_sel,	'r'},
-	{"shell",			main_menu_sel,	's'},
-	{"user list",			main_menu_sel,	'u'},
-	{"output user to file",		main_menu_sel,	'w'},
-	{"quit",			main_menu_sel,	'q'},
+	{"add a user",			(void (*) ()) main_menu_sel,	'a'},
+	{"delete a user",		(void (*) ()) main_menu_sel,	'd'},
+	{"kill all unconnected",	(void (*) ()) main_menu_sel,	'k'},
+	{"options",			(void (*) ()) main_menu_sel,	'o'},
+	{"rering all",			(void (*) ()) main_menu_sel,	'r'},
+	{"shell",			(void (*) ()) main_menu_sel,	's'},
+	{"user list",			(void (*) ()) main_menu_sel,	'u'},
+	{"output user to file",		(void (*) ()) main_menu_sel,	'w'},
+	{"quit",			(void (*) ()) main_menu_sel,	'q'},
 	{"",				NULL,		'\0'}	/* MUST BE LAST */
 };
 
@@ -98,10 +99,7 @@ static menu_item error_menu[] = {
 
 static yuser *output_user = NULL;
 
-static void
-do_output(filename)
-	char *filename;
-{
+static void do_output(char *filename) {
 	int fd;
 
 	if (output_user == NULL)
@@ -115,10 +113,7 @@ do_output(filename)
 	output_user = NULL;
 }
 
-static void
-do_output_user(user)
-	yuser *user;
-{
+static void do_output_user(yuser *user) {
 	/* if he has an open descriptor, close it */
 	if (user->output_fd > 0) {
 		close(user->output_fd);
@@ -136,24 +131,16 @@ do_output_user(user)
 		output_user = NULL;
 }
 
-static void
-do_invite(name)
-	char *name;
-{
+static void do_invite(char *name) {
 	invite(name, 1);
 }
 
-static void
-kill_all_unconnected()
-{
+static void kill_all_unconnected(void) {
 	while (wait_list)
 		free_user(wait_list);
 }
 
-static void
-main_menu_sel(key)
-	ychar key;
-{
+static void main_menu_sel(ychar key) {
 	switch (key) {
 	case 'a':		/* add a user */
 		if (show_text("Add Which User?", do_invite) >= 0)
@@ -192,10 +179,7 @@ main_menu_sel(key)
 	}
 }
 
-static void
-option_menu_sel(key)
-	ychar key;
-{
+static void option_menu_sel(ychar key) {
 	register yuser *u;
 	ylong old_flags;
 
@@ -235,10 +219,7 @@ option_menu_sel(key)
 		kill_menu();
 }
 
-static void
-user_menu_sel(key)
-	ychar key;
-{
+static void user_menu_sel(ychar key) {
 	register int i;
 	register yuser *u;
 
@@ -264,25 +245,17 @@ user_menu_sel(key)
 #define MENU_EXTRA 7		/* number of extra characters per menu screen
 				 * item */
 
-static void
-generate_text_length()
-{
+static void generate_text_length(void) {
 	menu_long = me->t_cols - MENU_EXTRA - 2;
 	if (menu_long < 5 || menu_long > MAXTEXT)
 		menu_long = MAXTEXT;
 }
 
-static void
-generate_yes_no_length()
-{
+static void generate_yes_no_length(void) {
 	menu_long = strlen(yes_no_menu[0].item) - 2;
 }
 
-static void
-pad_str(from, len, to)
-	char *from, *to;
-	int len;
-{
+static void pad_str(char *from, int len, char *to) {
 	for (; len > 0 && *from; len--, from++)
 		*(to++) = *from;
 	for (; len > 0; len--)
@@ -295,9 +268,7 @@ pad_str(from, len, to)
 /*
  * End any menu processing.
  */
-void
-kill_menu()
-{
+void kill_menu(void) {
 	register int i;
 
 	if (menu_ptr != NULL) {
@@ -319,9 +290,7 @@ kill_menu()
 /*
  * Update menu information.
  */
-void
-update_menu()
-{
+void update_menu(void) {
 	register ychar *c;
 	register char *d;
 	register int j, i, y, x;
@@ -390,7 +359,7 @@ update_menu()
 			io_len--;
 			kill_menu();
 			if (mesg_menu[0].func)
-				mesg_menu[0].func(ic);
+				((void (*) (ychar))mesg_menu[0].func)(ic);
 			return;
 		} else {
 			ic = *(io_ptr++);
@@ -409,7 +378,7 @@ update_menu()
 			} else if (ic > ' ' && ic <= '~') {
 				for (i = 0; i < menu_len; i++)
 					if (menu_ptr[i].key == ic && menu_ptr[i].func != NULL) {
-						menu_ptr[i].func(ic);
+						((void (*) (ychar))menu_ptr[i].func)(ic);
 						/*
 						 * THE WHOLE WORLD COULD BE DIFFERENT NOW.
 						 */
@@ -526,11 +495,7 @@ update_menu()
 /*
  * Show a menu, overriding any existing menu.
  */
-int
-show_menu(menu, len)
-	menu_item *menu;
-	int len;
-{
+int show_menu(menu_item *menu, int len) {
 	register int i, j;
 
 	if (me->t_rows < 2) {
@@ -567,11 +532,7 @@ show_menu(menu, len)
 /*
  * Show a text entry menu, overriding any existing menu.
  */
-int
-show_text(prompt, func)
-	char *prompt;
-	void (*func) ();
-{
+int show_text(char *prompt, void (*func) ()) {
 	if (me->t_rows < 3) {
 		show_error("show_text: window too small");
 		return -1;
@@ -601,11 +562,7 @@ show_text(prompt, func)
 /*
  * Show a message in a menu.
  */
-int
-show_mesg(mesg, func)
-	char *mesg;
-	void (*func) ();
-{
+int show_mesg(char *mesg, void (*func) ()) {
 	/* set up the menu for display */
 
 	mesg_menu[0].item = mesg;
@@ -615,9 +572,7 @@ show_mesg(mesg, func)
 	return show_menu(mesg_menu, 1);
 }
 
-int
-show_main_menu()
-{
+int show_main_menu(void) {
 	static int main_items = 0;
 
 	if (main_items == 0) {
@@ -627,9 +582,7 @@ show_main_menu()
 	return show_menu(main_menu, main_items);
 }
 
-int
-show_option_menu()
-{
+int show_option_menu(void) {
 	register int i = 0;
 
 	option_menu[i].item = "Options Menu";
@@ -646,7 +599,7 @@ show_option_menu()
 		option_menu[i].item = "turn scrolling off";
 	else
 		option_menu[i].item = "turn scrolling on";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 's';
 	i++;
 
@@ -654,7 +607,7 @@ show_option_menu()
 		option_menu[i].item = "turn word-wrap off";
 	else
 		option_menu[i].item = "turn word-wrap on";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'w';
 	i++;
 
@@ -662,7 +615,7 @@ show_option_menu()
 		option_menu[i].item = "turn auto-import off";
 	else
 		option_menu[i].item = "turn auto-import on";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'i';
 	i++;
 
@@ -670,7 +623,7 @@ show_option_menu()
 		option_menu[i].item = "turn auto-invite off";
 	else
 		option_menu[i].item = "turn auto-invite on";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'v';
 	i++;
 
@@ -678,7 +631,7 @@ show_option_menu()
 		option_menu[i].item = "turn reringing off";
 	else
 		option_menu[i].item = "turn reringing on";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'r';
 	i++;
 
@@ -686,7 +639,7 @@ show_option_menu()
 		option_menu[i].item = "don't prompt rerings   ";
 	else
 		option_menu[i].item = "prompt before reringing";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'p';
 	i++;
 
@@ -694,19 +647,14 @@ show_option_menu()
 		option_menu[i].item = "don't prompt to quit";
 	else
 		option_menu[i].item = "prompt before quitting";
-	option_menu[i].func = option_menu_sel;
+	option_menu[i].func = (void (*) ())option_menu_sel;
 	option_menu[i].key = 'q';
 	i++;
 
 	return show_menu(option_menu, i);
 }
 
-int
-show_user_menu(title, func, metoo)
-	char *title;
-	void (*func) ();
-	int metoo;
-{
+int show_user_menu(char *title, void (*func) (), int metoo) {
 	register int i;
 	register yuser *u;
 
@@ -723,7 +671,7 @@ show_user_menu(title, func, metoo)
 			if (u->key != '\0') {
 				strcpy(user_buf[i], u->full_name);
 				user_menu[i].item = user_buf[i];
-				user_menu[i].func = user_menu_sel;
+				user_menu[i].func = (void (*) ()) user_menu_sel;
 				user_menu[i].key = u->key;
 				i++;
 			}
@@ -734,12 +682,7 @@ show_user_menu(title, func, metoo)
 	return -1;
 }
 
-void
-stalkversion(user, buf, len)
-	yuser *user;
-	char *buf;
-	size_t len;
-{
+void stalkversion(yuser *user, char *buf, size_t len) {
 #ifdef HAVE_SNPRINTF
 	if (user->remote.vmajor > 2)
 		snprintf(buf, len, "YTalk V%d.%d",
@@ -765,9 +708,7 @@ stalkversion(user, buf, len)
 	return;
 }
 
-int
-show_user_list()
-{
+int show_user_list(void) {
 	register int i;
 	register yuser *u;
 	static char name_buf[25], stat_buf[25];
@@ -823,10 +764,7 @@ show_user_list()
 	return show_menu(user_menu, i);
 }
 
-int
-show_error_menu(str1, str2)
-	char *str1, *str2;
-{
+int show_error_menu(char *str1, char *str2) {
 	register int i;
 
 	for (i = 0; error_menu[i].key != '\0'; i++)
@@ -849,10 +787,7 @@ show_error_menu(str1, str2)
  * Prompt user for yes/no response.  Return the response.  It is necessary
  * for this function to hang until an answer is received.
  */
-int
-yes_no(prompt)
-	char *prompt;
-{
+int yes_no(char *prompt) {
 	int out = 0;
 	int esc_pressed = 0;
 	char *p;
@@ -898,9 +833,7 @@ yes_no(prompt)
 	return out;
 }
 
-void
-update_user_menu()
-{
+void update_user_menu(void) {
 	if (menu_ptr == user_menu) {
 		redraw_term(me, 0);
 		if (user_menu[0].func)	/* it's a user menu */

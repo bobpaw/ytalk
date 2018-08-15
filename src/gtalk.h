@@ -25,6 +25,6 @@
 #define GTALK_IMPORT_REQUEST	0x06
 #define GTALK_VERSION_MESSAGE	0x08
 
-extern void gtalk_process( /* yuser *, ychar */ );
+extern void gtalk_process(yuser *user, ychar data);
 
-extern char *gtalk_parse_version( /* char *, ychar */);
+extern char *gtalk_parse_version(char *str, ychar ukill);

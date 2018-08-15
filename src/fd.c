@@ -18,6 +18,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "menu.h"
 
@@ -53,9 +54,7 @@ static struct fd_func tag[MAX_FILES];	/* one function per file descriptor */
 /*
  * Initialize fdset data.
  */
-void
-init_fd()
-{
+void init_fd(void) {
 	FD_ZERO(&fdset);
 }
 
@@ -63,11 +62,7 @@ init_fd()
  * Add a file descriptor to the current checklist.  The supplied function
  * will be called whenever the file descriptor has input waiting.
  */
-void
-add_fd(fd, user_func)
-	int fd;
-	void (*user_func) ();
-{
+void add_fd(int fd, void (*user_func) ()) {
 	if (fd < 0 || fd >= MAX_FILES) {
 		show_error("add_fd: descriptor out of range");
 		return;
@@ -81,10 +76,7 @@ add_fd(fd, user_func)
 /*
  * Remove a file descriptor from the checklist.
  */
-void
-remove_fd(fd)
-	int fd;
-{
+void remove_fd(int fd) {
 	if (fd < 0 || fd >= MAX_FILES) {
 		show_error("remove_fd: descriptor out of range");
 		return;
@@ -97,12 +89,7 @@ remove_fd(fd)
 /*
  * Read an entire length of data. Returns 0 on success, -1 on error.
  */
-int
-full_read(fd, buf, len)
-	int fd;
-	register char *buf;
-	register size_t len;
-{
+int full_read(int fd, register char *buf, register size_t len) {
 	register int rc;
 
 	while (len > 0) {
@@ -118,17 +105,16 @@ full_read(fd, buf, len)
 
 static ylong lastping, curtime;
 
-void
-main_loop()
-{
+void main_loop(void) {
 	register int fd, rc;
 	struct timeval tv;
 
 #ifdef HAVE_SIGPROCMASK
 	sigset_t mask, old_mask;
-#endif
-#ifdef HAVE_SIGSETMASK
-	int mask, old_mask;
+#else
+	#ifdef HAVE_SIGSETMASK
+		int mask, old_mask;
+	#endif
 #endif
 
 	/*
@@ -137,21 +123,22 @@ main_loop()
 	 */
 
 #ifdef SIGWINCH
-# ifdef HAVE_SIGPROCMASK
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGWINCH);
-# endif
-# ifdef HAVE_SIGSETMASK
-	mask = sigmask(SIGWINCH);
-# endif
+	#ifdef HAVE_SIGPROCMASK
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGWINCH);
+	#else
+		#ifdef HAVE_SIGSETMASK
+			mask = sigmask(SIGWINCH);
+		#endif
+	#endif
 #endif
 
 #ifdef SIGCHLD
 	signal(SIGCHLD, SIG_IGN);
 #else
-# ifdef SIGCLD
-	signal(SIGCLD, SIG_IGN);
-# endif
+	#ifdef SIGCLD
+		signal(SIGCLD, SIG_IGN);
+	#endif
 #endif
 
 	/*
@@ -187,15 +174,17 @@ main_loop()
 		/* block signals while doing internal processing */
 
 #ifdef SIGWINCH
-# ifdef HAVE_SIGPROCMASK
+	#ifdef HAVE_SIGPROCMASK
 		sigprocmask(SIG_BLOCK, &mask, &old_mask);
-# endif
-# ifdef HAVE_SIGSETMASK
-		old_mask = sigblock(mask);
-# endif
-# ifdef HAVE_SIGHOLD
-		sighold(SIGWINCH);
-# endif
+	#else
+		#ifdef HAVE_SIGSETMASK
+			old_mask = sigblock(mask);
+		#else
+			#ifdef HAVE_SIGHOLD
+				sighold(SIGWINCH);
+			#endif
+		#endif
+	#endif
 #endif
 
 		/* process file descriptors with input waiting */
@@ -218,15 +207,16 @@ main_loop()
 		/* re-allow signals */
 
 #ifdef SIGWINCH
-# ifdef HAVE_SIGPROCMASK
+	#ifdef HAVE_SIGPROCMASK
 		sigprocmask(SIG_SETMASK, &old_mask, NULL);
-# endif
-# ifdef HAVE_SIGSETMASK
-		sigsetmask(old_mask);
-# endif
-# ifdef HAVE_SIGHOLD
+	#else
+		#ifdef HAVE_SIGSETMASK
+			sigsetmask(old_mask);
+		#endif
+	#endif
+	#ifdef HAVE_SIGHOLD
 		sigrelse(SIGWINCH);
-# endif
+	#endif
 #endif
 
 		if (user_winch) {
@@ -247,9 +237,7 @@ main_loop()
  * questions without needing to add a getch_term() function to the terminal
  * definition library.  Hack?  maybe.  Fun, tho.
  */
-void
-input_loop()
-{
+void input_loop(void) {
 	register int fd, rc;
 	struct timeval tv;
 	static int left_loop;
@@ -318,9 +306,7 @@ input_loop()
  * Wait for a character from the terminal, in preparation for bailing out;
  * then read and discard that keypress.
  */
-void
-bail_loop()
-{
+void bail_loop(void) {
 	char keypress;
 	full_read(0, &keypress, sizeof(char));
 }

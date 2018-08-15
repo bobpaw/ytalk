@@ -19,6 +19,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "mem.h"
 
@@ -47,10 +48,7 @@ static ywin *head;		/* head of linked list */
 /*
  * Take input from the user.
  */
-static void
-curses_input(fd)
-	int fd;
-{
+static void curses_input(int fd) {
 	register int rc;
 	static ychar buf[MAXBUF];
 
@@ -62,11 +60,7 @@ curses_input(fd)
 	my_input(me, buf, rc);
 }
 
-static ywin *
-new_ywin(user, title)
-	yuser *user;
-	char *title;
-{
+static ywin * new_ywin(yuser * user, char * title) {
 	register ywin *out;
 	register int len;
 
@@ -79,11 +73,7 @@ new_ywin(user, title)
 	return out;
 }
 
-static void
-make_win(w, height, width, row, col)
-	ywin *w;
-	int height, width, row, col;
-{
+static void make_win(ywin * w, int height, int width, int row, int col) {
 	if ((w->win = newwin(height, width, row, col)) == NULL) {
 		w = (ywin *) (me->term);
 		if (w->win != NULL)
@@ -98,10 +88,7 @@ make_win(w, height, width, row, col)
 	wmove(w->win, 0, 0);
 }
 
-static void
-draw_title(w)
-	ywin *w;
-{
+static void draw_title(ywin * w) {
 	register int pad, x;
 	register char *t;
 
@@ -134,10 +121,7 @@ draw_title(w)
 /*
  * Return number of lines per window, given "wins" windows.
  */
-static int
-win_size(wins)
-	int wins;
-{
+static int win_size(int wins) {
 	if (wins == 0)
 		return 0;
 	return (LINES - 1) / wins;
@@ -146,9 +130,7 @@ win_size(wins)
 /*
  * Break down and redraw all user windows.
  */
-static void
-curses_redraw()
-{
+static void curses_redraw(void) {
 	register ywin *w;
 	register int row, wins, wsize;
 
@@ -192,9 +174,7 @@ curses_redraw()
 /*
  * Start curses and set all options.
  */
-static void
-curses_start()
-{
+static void curses_start(void) {
 	char *term;
 	if (initscr() == NULL) {
 		term = getenv("TERM");
@@ -210,9 +190,7 @@ curses_start()
 /*
  * Restart curses... window size has changed.
  */
-static RETSIGTYPE
-curses_restart()
-{
+static RETSIGTYPE curses_restart(void) {
 	register ywin *w;
 
 	/* kill old windows */
@@ -241,9 +219,7 @@ curses_restart()
 
 /* ---- global functions ---- */
 
-void
-init_curses()
-{
+void init_curses(void) {
 	curses_start();
 	refresh();
 	head = NULL;
@@ -255,9 +231,7 @@ init_curses()
 #endif
 }
 
-void
-end_curses()
-{
+void end_curses(void) {
 	move(LINES - 1, 0);
 	clrtoeol();
 	refresh();
@@ -267,11 +241,7 @@ end_curses()
 /*
  * Open a new window.
  */
-int
-open_curses(user, title)
-	yuser *user;
-	char *title;
-{
+int open_curses(yuser * user, char * title) {
 	register ywin *w;
 	register int wins;
 
@@ -307,10 +277,7 @@ open_curses(user, title)
 /*
  * Close a window.
  */
-void
-close_curses(user)
-	yuser *user;
-{
+void close_curses(yuser * user) {
 	register ywin *w, *p;
 
 	/* zap the old user */
@@ -336,11 +303,7 @@ close_curses(user)
 	curses_redraw();
 }
 
-void
-addch_curses(user, c)
-	yuser *user;
-	register ychar c;
-{
+void addch_curses(yuser * user, register ychar c) {
 	register ywin *w;
 	register int x, y;
 
@@ -351,41 +314,28 @@ addch_curses(user, c)
 		wmove(w->win, y, x);
 }
 
-void
-move_curses(user, y, x)
-	yuser *user;
-	register int y, x;
-{
+void move_curses(yuser * user, register int y, register int x) {
 	register ywin *w;
 
 	w = (ywin *) (user->term);
 	wmove(w->win, y, x);
 }
 
-void
-clreol_curses(user)
-	register yuser *user;
-{
+void clreol_curses(register yuser * user) {
 	register ywin *w;
 
 	w = (ywin *) (user->term);
 	wclrtoeol(w->win);
 }
 
-void
-clreos_curses(user)
-	register yuser *user;
-{
+void clreos_curses(register yuser * user) {
 	register ywin *w;
 
 	w = (ywin *) (user->term);
 	wclrtobot(w->win);
 }
 
-void
-scroll_curses(user)
-	register yuser *user;
-{
+void scroll_curses(register yuser * user) {
 	register ywin *w;
 
 	/*
@@ -408,19 +358,13 @@ scroll_curses(user)
 	wmove(w->win, user->y, user->x);
 }
 
-void
-keypad_curses(bf)
-	bool bf;
-{
+void keypad_curses(bool bf) {
 #ifdef HAVE_KEYPAD
 	keypad(((ywin *) (me->term))->win, bf);
 #endif
 }
 
-void
-flush_curses(user)
-	register yuser *user;
-{
+void flush_curses(register yuser * user) {
 	register ywin *w;
 
 	w = (ywin *) (user->term);
@@ -430,9 +374,7 @@ flush_curses(user)
 /*
  * Clear and redisplay.
  */
-void
-redisplay_curses()
-{
+void redisplay_curses(void) {
 	register ywin *w;
 
 	clear();
@@ -448,18 +390,14 @@ redisplay_curses()
 /*
  * Set raw mode.
  */
-void
-set_raw_curses()
-{
+void set_raw_curses(void) {
 	raw();
 }
 
 /*
  * Set cooked mode.
  */
-void
-set_cooked_curses()
-{
+void set_cooked_curses(void) {
 	noraw();
 	crmode();
 	noecho();

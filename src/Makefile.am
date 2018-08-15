@@ -1,4 +1,5 @@
 bin_PROGRAMS = ytalk
+check_PROGRAMS = ptyalloc
 
 ytalk_SOURCES = \
 	main.c \
@@ -22,7 +23,7 @@ ytalk_SOURCES = \
 	menu.h \
 	gtalk.h
 
-INCLUDES = -I..
-LIBS = @LIBS@
+ptyalloc_SOURCES = ptyalloc.c getpty.c
+ptyalloc_CPPFLAGS = -DYTALK_TEST
 
-DEFS = @DEFS@ @SYSTEM_DEFS@
+AM_CPPFLAGS = -I.. -include "config.h"

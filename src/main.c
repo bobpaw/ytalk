@@ -18,6 +18,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "menu.h"
 #include "mem.h"
@@ -31,10 +32,7 @@ ylong myuid;			/* global uid */
 /*
  * Clean up and exit.
  */
-void
-bail(n)
-	int n;
-{
+void bail(int n) {
 	kill_auto();
 	if (n == YTE_SUCCESS_PROMPT && (def_flags & FL_PROMPTQUIT))
 		if (show_mesg("Press any key to quit.", NULL) == 0) {
@@ -56,10 +54,7 @@ bail(n)
 /*
  * Display an error.
  */
-void
-show_error(str)
-	register char *str;
-{
+void show_error(register char *str) {
 	register char *syserr;
 	static int in_error = 0;
 
@@ -90,10 +85,7 @@ show_error(str)
 /*
  * Copy a string.
  */
-char *
-str_copy(str)
-	register char *str;
-{
+char * str_copy(register char *str) {
 	register char *out;
 	register size_t len;
 
@@ -108,10 +100,7 @@ str_copy(str)
 /*
  * Process signals.
  */
-static RETSIGTYPE
-got_sig(n)
-	int n;
-{
+static RETSIGTYPE got_sig(int n) {
 	if (n == SIGINT) {
 		if (def_flags & FL_IGNBRK)
 			return;
@@ -121,11 +110,7 @@ got_sig(n)
 }
 
 /* MAIN  */
-int
-main(argc, argv)
-	int argc;
-	char **argv;
-{
+int main(int argc, char * argv[]) {
 	int sflg = 0, yflg = 0, iflg = 0, vflg = 0, qflg = 0, eflg = 0;
 	char *prog;
 

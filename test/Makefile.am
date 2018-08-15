@@ -1,12 +1,3 @@
-check_PROGRAMS = ptyalloc
+TESTS = sanity get-pty.sh
 
-ptyalloc_SOURCES = \
-	ptyalloc.c \
-	../src/getpty.c
-
-TESTS = sanity ptyalloc
-
-INCLUDES = -I..
-LIBS = @LIBS@
-
-DEFS = @DEFS@ @SYSTEM_DEFS@ -DYTALK_TEST
+AM_CPPFLAGS = -I.. -DYTALK_TEST

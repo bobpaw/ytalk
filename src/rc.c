@@ -19,6 +19,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "mem.h"
 #include <pwd.h>
@@ -31,10 +32,7 @@ static struct alias *alias0 = NULL;
 
 /* ---- local functions ---- */
 
-static char *
-get_word(p)
-	char **p;
-{
+static char * get_word(char ** p) {
 	register char *c, *out;
 
 	c = *p;
@@ -51,10 +49,7 @@ get_word(p)
 	return out;
 }
 
-static int
-set_option(opt, value)
-	char *opt, *value;
-{
+static int set_option(char *opt, char *value) {
 	ylong mask = 0;
 	int set_it;
 
@@ -141,10 +136,7 @@ set_option(opt, value)
 	return 0;
 }
 
-static void
-read_rcfile(fname)
-	char *fname;
-{
+static void read_rcfile(char *fname) {
 	FILE *fp;
 	char *buf, *ptr;
 	char *w, *arg1, *arg2, *arg3, *at;
@@ -250,10 +242,7 @@ read_rcfile(fname)
 
 /* ---- global functions ---- */
 
-char *
-resolve_alias(uh)
-	char *uh;
-{
+char * resolve_alias(char *uh) {
 	struct alias *a;
 	static char uh1[256], *at;
 	int found = 0;
@@ -300,9 +289,7 @@ resolve_alias(uh)
 		return uh;
 }
 
-void
-read_ytalkrc()
-{
+void read_ytalkrc(void) {
 	yuser *u;
 	char *home, *fname;
 	struct passwd *pw;

@@ -19,54 +19,54 @@
  *
  */
 
-
+#include "config.h"
 #include "header.h"
 #include <pwd.h>
 
 #ifdef HAVE_SYS_IOCTL_H
-# include <sys/ioctl.h>
+	#include <sys/ioctl.h>
 #endif
 
 #ifdef HAVE_FCNTL_H
-# include <fcntl.h>
+	#include <fcntl.h>
 #endif
 
 #include <signal.h>
 #include <sys/wait.h>
 
 #ifdef HAVE_STROPTS_H
-# include <stropts.h>
+	#include <stropts.h>
 #endif
 
 #ifdef HAVE_SYS_CONF_H
-# include <sys/conf.h>
+	#include <sys/conf.h>
 #endif
 
 #ifdef HAVE_TERMIOS_H
-# include <termios.h>
+	#include <termios.h>
 #else
-# ifdef HAVE_SGTTY_H
-#  include <sgtty.h>
-#  ifdef hpux
-#   include <sys/bsdtty.h>
-#  endif
-# endif
+	#ifdef HAVE_SGTTY_H
+		#include <sgtty.h>
+		#ifdef hpux
+			#include <sys/bsdtty.h>
+		#endif
+	#endif
 #endif
 
 #ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
+	#include <sys/stat.h>
 #endif
 
 #ifdef HAVE_OPENPTY
-# ifdef HAVE_UTIL_H
-#  include <util.h>
-# else
-int openpty(int *, int *, char *, struct termios *, struct winsize *);
-# endif
+	#ifdef HAVE_UTIL_H
+		#include <util.h>
+	#else
+		int openpty(int *, int *, char *, struct termios *, struct winsize *);
+	#endif
 #endif
 
 #if defined(HAVE_PTSNAME) && defined(HAVE_GRANTPT) && defined(HAVE_UNLOCKPT)
-# define USE_DEV_PTMX
+	#define USE_DEV_PTMX
 #endif
 
 int running_process = 0;	/* flag: is process running? */
@@ -77,10 +77,8 @@ static int prows, pcols;	/* saved rows, cols */
 /* ---- local functions ---- */
 
 #ifndef HAVE_SETSID
-static int
-setsid()
-{
-#ifdef TIOCNOTTY
+static int setsid(void) {
+	#ifdef TIOCNOTTY
 	register int fd;
 
 	if ((fd = open("/dev/tty", O_RDWR)) >= 0) {
@@ -88,7 +86,7 @@ setsid()
 		close(fd);
 	}
 	return fd;
-#endif
+	#endif
 }
 #endif
 
@@ -97,13 +95,10 @@ int needtopush = 0;
 #endif
 
 #ifndef SIGCHLD
-# define SIGCLD SIGCHLD
+	#define SIGCLD SIGCHLD
 #endif
 
-static void
-exec_input(fd)
-	int fd;
-{
+static void exec_input(int fd) {
 	register int rc;
 	static ychar buf[MAXBUF];
 
@@ -117,10 +112,7 @@ exec_input(fd)
 	send_users(me, buf, rc, buf, rc);
 }
 
-static void
-calculate_size(rows, cols)
-	int *rows, *cols;
-{
+static void calculate_size(int * rows, int * cols) {
 	register yuser *u;
 
 	*rows = me->t_rows;
@@ -141,10 +133,7 @@ calculate_size(rows, cols)
  * Execute a command inside my window.  If command is NULL, then execute a
  * shell.
  */
-void
-execute(command)
-	char *command;
-{
+void execute(char * command) {
 	int fd;
 #ifdef HAVE_PUTENV
 	char yvenv[25];
@@ -179,21 +168,26 @@ execute(command)
 #if defined(HAVE_TCFLUSH) && defined(TCIOFLUSH)
 	tcflush(fd, TCIOFLUSH);
 #else
-#ifdef TIOCFLUSH
+	#ifdef TIOCFLUSH
 	ioctl(fd, TIOCFLUSH, NULL);
-#else
-#ifdef TIOCEXCL
+	#else
+		#ifdef TIOCEXCL
 	ioctl(fd, TIOCEXCL, NULL);
-#endif
-#endif
+		#endif
+	#endif
 #endif
 
-	pw = getpwuid(myuid);
-	if (pw != NULL) {
-		shell = pw->pw_shell;
-	} else {
-		shell = "/bin/sh";
-	}
+   pw = getpwuid(myuid);
+   shell=getenv("SHELL");
+   if(shell==NULL){
+      if (pw != NULL) {
+         shell = pw->pw_shell;
+      } else {
+         shell = "/bin/sh";
+      }
+   } else {
+      shell = strdup(shell);
+   }
 
 	calculate_size(&prows, &pcols);
 
@@ -278,7 +272,7 @@ execute(command)
 		else
 			execl(shell, shell, (char *) NULL);
 		perror("execl");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	/* Modified by P. Maragakis (Maragakis@mpq.mpg.de) Aug 10, 1999. */
 #ifdef SIGCHLD
@@ -305,9 +299,7 @@ execute(command)
 /*
  * Send input to the command shell.
  */
-void
-update_exec()
-{
+void update_exec(void) {
 	write(pfd, io_ptr, (size_t) io_len);
 	io_len = 0;
 }
@@ -315,9 +307,7 @@ update_exec()
 /*
  * Kill the command shell.
  */
-void
-kill_exec()
-{
+void kill_exec() {
 	if (!running_process)
 		return;
 	remove_fd(pfd);
@@ -331,9 +321,7 @@ kill_exec()
 /*
  * Send a SIGWINCH to the process.
  */
-void
-winch_exec()
-{
+void winch_exec(void) {
 	int rows, cols;
 
 	if (!running_process)

@@ -19,6 +19,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "socket.h"
 #include "menu.h"
@@ -63,12 +64,7 @@ static v3_winch v3w;
 /*
  * Set up a drain of out-of-band data.
  */
-static void
-drain_user(user, len, func)
-	yuser *user;
-	int len;
-	void (*func) ();
-{
+static void drain_user(yuser * user, int len, void (*func) ()) {
 	if (len > user->dbuf_size) {
 		user->dbuf_size = len + 64;
 		user->dbuf = (ychar *) realloc_mem(user->dbuf, user->dbuf_size);
@@ -81,12 +77,7 @@ drain_user(user, len, func)
 /*
  * Send out-of-band data.
  */
-static void
-send_oob(fd, ptr, len)
-	int fd;
-	yaddr ptr;
-	ychar len;
-{
+static void send_oob(int fd, yaddr ptr, ychar len) {
 	ychar oob, size;
 	static struct iovec iov[3];
 	int r;
@@ -112,10 +103,7 @@ send_oob(fd, ptr, len)
  * Ask another ytalk connection if he wants to import a user I've just now
  * connected to.
  */
-static void
-send_import(to, from)
-	yuser *to, *from;
-{
+static void send_import(yuser * to, yuser * from) {
 	if (to->remote.vmajor > 2) {
 		v3p.code = V3_IMPORT;
 		v3p.host_addr = htonl(from->host_addr);
@@ -134,10 +122,7 @@ send_import(to, from)
 /*
  * Tell another ytalk connection to connect to a user.
  */
-static void
-send_accept(to, from)
-	yuser *to, *from;
-{
+static void send_accept(yuser * to, yuser * from) {
 	if (to->remote.vmajor > 2) {
 		v3p.code = V3_ACCEPT;
 		v3p.host_addr = htonl(from->host_addr);
@@ -156,11 +141,7 @@ send_accept(to, from)
 /*
  * Process a Ytalk version 2.? data packet.
  */
-static void
-v2_process(user, pack)
-	yuser *user;
-	v2_pack *pack;
-{
+static void v2_process(yuser * user, v2_pack * pack) {
 	register yuser *u;
 	ylong host_addr;
 	char *estr, *name, *host;
@@ -249,11 +230,7 @@ v2_process(user, pack)
 /*
  * Process a Ytalk version 3.? data packet.
  */
-static void
-v3_process_pack(user, pack)
-	yuser *user;
-	v3_pack *pack;
-{
+static void v3_process_pack(yuser * user, v3_pack * pack) {
 	register yuser *u, *u2;
 	ylong host_addr, pid;
 	char *estr, *name, *host;
@@ -339,11 +316,7 @@ v3_process_pack(user, pack)
  * Process a Ytalk version 3.? flags packet.  Other users can request that
  * their flags be locked to a particular value until they unlock them later.
  */
-static void
-v3_process_flags(user, pack)
-	yuser *user;
-	v3_flags *pack;
-{
+static void v3_process_flags(yuser * user, v3_flags * pack) {
 	switch (pack->code) {
 	case V3_LOCKF:
 		user->flags = ntohl(pack->flags) | FL_LOCKED;
@@ -357,11 +330,7 @@ v3_process_flags(user, pack)
 /*
  * Process a Ytalk version 3.? winch packet.
  */
-static void
-v3_process_winch(user, pack)
-	yuser *user;
-	v3_winch *pack;
-{
+static void v3_process_winch(yuser * user, v3_winch * pack) {
 	switch (pack->code) {
 	case V3_YOURWIN:
 		user->remote.my_rows = ntohs(pack->rows);
@@ -388,11 +357,7 @@ v3_process_winch(user, pack)
  * Process a Ytalk version 3.? out-of-band packet.  Call the appropriate
  * function based on the type of packet.
  */
-static void
-v3_process(user, ptr)
-	yuser *user;
-	yaddr ptr;
-{
+static void v3_process(yuser * user, yaddr ptr) {
 	ychar *str;
 
 	/* ignore anything we don't understand */
@@ -420,10 +385,7 @@ v3_process(user, ptr)
  * Take input from a connected user.  If necessary, drain out-of-band data
  * from the canonical input stream.
  */
-static void
-read_user(fd)
-	int fd;
-{
+static void read_user(int fd) {
 	register ychar *c, *p;
 	register ssize_t rc;
 	register yuser *user;
@@ -539,10 +501,7 @@ read_user(fd)
 /*
  * Initial Handshaking:  read the parameter pack from another ytalk user.
  */
-static void
-ytalk_user(fd)
-	int fd;
-{
+static void ytalk_user(int fd) {
 	register yuser *user, *u;
 	u_short cols;
 
@@ -605,7 +564,7 @@ ytalk_user(fd)
 	user->next = connect_list;
 	connect_list = user;
 
-	/* send him my status */
+	/* send them my status */
 
 	if (user->remote.vmajor > 2) {
 		if (me->region_set) {
@@ -635,10 +594,7 @@ ytalk_user(fd)
  * Initial Handshaking:  read the edit keys and determine whether or not this
  * is another ytalk user.
  */
-static void
-connect_user(fd)
-	int fd;
-{
+static void connect_user(int fd) {
 	register yuser *user, *u;
 
 	if ((user = fd_to_user[fd]) == NULL) {
@@ -696,10 +652,7 @@ connect_user(fd)
  * Initial Handshaking:  delete his invitation (if it exists) and send my
  * edit keys.
  */
-static void
-contact_user(fd)
-	int fd;
-{
+static void contact_user(int fd) {
 	register yuser *user;
 	register int n;
 	socklen_t socklen;
@@ -750,10 +703,7 @@ contact_user(fd)
 /*
  * Do a word wrap.
  */
-static int
-word_wrap(user)
-	register yuser *user;
-{
+static int word_wrap(yuser * user) {
 	register int i, x, bound;
 	static ychar temp[20];
 
@@ -776,10 +726,7 @@ word_wrap(user)
  * Ring a user.  If he has an auto-invitation port established then talk to
  * that instead of messing up his screen.
  */
-static int
-announce(user)
-	yuser *user;
-{
+static int announce(yuser * user) {
 	register int rc, fd;
 
 	errno = 0;
@@ -827,11 +774,7 @@ announce(user)
 /*
  * Invite a user into the conversation.
  */
-yuser *
-invite(name, send_announce)
-	register char *name;
-	int send_announce;
-{
+yuser * invite(register char * name, int send_announce) {
 	register int rc;
 	char *hisname, *hishost, *histty;
 	yuser *user;
@@ -971,9 +914,7 @@ invite(name, send_announce)
 /*
  * Periodic housecleaning.
  */
-void
-house_clean()
-{
+void house_clean(void) {
 	register yuser *u, *next;
 	ylong t;
 	static char estr[80];
@@ -1030,9 +971,7 @@ house_clean()
 	}
 }
 
-void
-rering_all()
-{
+void rering_all(void) {
 	yuser *u, *next;
 	int rc;
 
@@ -1064,10 +1003,7 @@ rering_all()
 	}
 }
 
-void
-send_winch(user)
-	yuser *user;
-{
+void send_winch(yuser * user) {
 	register yuser *u;
 
 	v3w.rows = htons(user->t_rows);
@@ -1085,9 +1021,7 @@ send_winch(user)
 	}
 }
 
-void
-send_region()
-{
+void send_region(void) {
 	register yuser *u;
 
 	v3w.code = V3_REGION;
@@ -1099,9 +1033,7 @@ send_region()
 			send_oob(u->fd, (yaddr)&v3w, V3_WINCHLEN);
 }
 
-void
-send_end_region()
-{
+void send_end_region(void) {
 	register yuser *u;
 
 	v3w.code = V3_REGION;
@@ -1117,12 +1049,7 @@ send_end_region()
  * Send some output to a given user.  Sends the output to all connected users
  * if the given user is either "me" or NULL.
  */
-void
-send_users(user, buf, len, cbuf, clen)
-	yuser *user;
-	ychar *buf, *cbuf;
-	int len, clen;
-{
+void send_users(yuser * user, ychar * buf, int len, ychar * cbuf, int clen) {
 	register yuser *u;
 	ychar *o, *b, *co, *cb;
 	static ychar *o_buf = NULL;
@@ -1174,12 +1101,7 @@ send_users(user, buf, len, cbuf, clen)
 /*
  * Display user input.  Emulate ANSI.
  */
-void
-show_input(user, buf, len)
-	yuser *user;
-	register ychar *buf;
-	register int len;
-{
+void show_input(yuser * user, register ychar * buf, register int len) {
 	if (user->vt.got_esc) {
 process_esc:
 		for (; len > 0; len--, buf++) {
@@ -1290,12 +1212,7 @@ process_gt:
 /*
  * Process keyboard input.
  */
-void
-my_input(user, buf, len)
-	yuser *user;
-	ychar *buf;
-	int len;
-{
+void my_input(yuser * user, ychar * buf, int len) {
 	ychar *c, *n;
 	int i, j;
 	static ychar *nbuf = NULL;
@@ -1361,6 +1278,12 @@ my_input(user, buf, len)
 							*n = c[j];
 					}
 					j = (n - nbuf);
+					if (me->output_fd > 0)
+				  	if (write(me->output_fd, nbuf, (size_t)j) <= 0) {
+							show_error("write to user output file failed");
+							close(me->output_fd);
+							me->output_fd = 0;
+						}
 					show_input(me, nbuf, j);
 					send_users(user, c, i, nbuf, j);
 				}
@@ -1386,10 +1309,7 @@ my_input(user, buf, len)
 	}
 }
 
-void
-lock_flags(flags)
-	ylong flags;
-{
+void lock_flags(ylong flags) {
 	register yuser *u;
 
 	me->flags = flags | FL_LOCKED;
@@ -1403,9 +1323,7 @@ lock_flags(flags)
 			send_oob(u->fd, (yaddr)&v3f, V3_FLAGSLEN);
 }
 
-void
-unlock_flags()
-{
+void unlock_flags(void) {
 	register yuser *u;
 
 	me->flags = def_flags;

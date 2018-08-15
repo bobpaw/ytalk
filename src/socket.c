@@ -19,7 +19,7 @@
  *
  */
 
-
+#include "config.h"
 #include "header.h"
 #include "menu.h"
 #include "socket.h"
@@ -71,10 +71,7 @@ static readdr *readdr_list = NULL;	/* list of re-addresses */
 /*
  * Create a datagram socket.
  */
-static int
-init_dgram(sock)
-	struct sockaddr_in *sock;
-{
+static int init_dgram(struct sockaddr_in *sock) {
 	int fd;
 	socklen_t socklen;
 
@@ -103,13 +100,7 @@ init_dgram(sock)
 /*
  * Initialize a new daemon structure.
  */
-static int
-init_daemon(name, port, mptr, mlen, rptr, rlen)
-	char *name;
-	short port;
-	yaddr mptr, rptr;
-	int mlen, rlen;
-{
+static int init_daemon(char *name, short port, yaddr mptr, int mlen, yaddr rptr, int rlen) {
 	struct servent *serv;
 	int d;
 
@@ -132,10 +123,7 @@ init_daemon(name, port, mptr, mlen, rptr, rlen)
 	return d;
 }
 
-static void
-read_autoport(fd)
-	int fd;
-{
+static void read_autoport(int fd) {
 	socklen_t socklen;
 	v2_pack *pack;
 	char *estr;
@@ -194,9 +182,7 @@ read_autoport(fd)
 /*
  * Create and initialize the auto-invitation socket.
  */
-static void
-init_autoport()
-{
+static void init_autoport(void) {
 	socklen_t socklen;
 
 	autosock.sin_family = AF_INET;
@@ -235,11 +221,7 @@ init_autoport()
  * Fill the socket address field with the appropriate return address for the
  * host I'm sending to.
  */
-static void
-place_my_address(sock, addr)
-	BSD42_SOCK *sock;
-	register ylong addr;
-{
+static void place_my_address(BSD42_SOCK *sock, register ylong addr) {
 	register readdr *r;
 
 	for (r = readdr_list; r != NULL; r = r->next)
@@ -259,11 +241,7 @@ place_my_address(sock, addr)
  * sendit() sends the completed message to the talk daemon at the given
  * hostname, then reads a response packet.
  */
-static int
-sendit(addr, d)
-	ylong addr;		/* host internet address */
-	int d;			/* daemon number */
-{
+static int sendit(ylong addr /*host internet address */, int d /* daemon number */) {
 	ssize_t n;
 	struct sockaddr_in remote_daemon;
 	struct timeval tv;
@@ -290,9 +268,9 @@ sendit(addr, d)
 		rtype = &(orsp.type);
 	} else {
 #ifdef HAVE_SNPRINTF
-		snprintf(errstr, MAXERR, "Unkown daemon type: %d", d);
+		snprintf(errstr, MAXERR, "Unknown daemon type: %d", d);
 #else
-		sprintf(errstr, "Unkown daemon type: %d", d);
+		sprintf(errstr, "Unknown daemon type: %d", d);
 #endif
 		show_error(errstr);
 		return -1;
@@ -370,7 +348,7 @@ sendit(addr, d)
 
 	/*
 	 * Just because a person is a SYSADMIN doesn't necessarily mean
-	 * he/she knows everything about installing software.  In fact, many
+	 * they knows everything about installing software.  In fact, many
 	 * have been known to install the talk daemon without setting the
 	 * option required to pad out the structures so that "long"s are on
 	 * four-byte boundaries on machines where "long"s can be on two-byte
@@ -405,10 +383,7 @@ sendit(addr, d)
  * find_daemon() locates the talk daemon(s) on a machine and determines what
  * version(s) of the daemon are running.
  */
-static int
-find_daemon(addr)
-	ylong addr;
-{
+static int find_daemon(ylong addr) {
 	register hostinfo *h;
 	register int n, i, d;
 	CTL_MSG m1;
@@ -453,12 +428,19 @@ find_daemon(addr)
 			   0, (struct sockaddr *) & remote_daemon, sizeof(remote_daemon));
 		if (n != sizeof(m2))
 			show_error("Warning: cannot write to new talk daemon");
+                /* Commented out by J. Javier Maestro:
+                 * Quick hack to make ytalk work for usernames longer than 8
+                 * characters. Apparently, talkd returns an error message when
+                 * receiving an old talk packet and this breaks ytalk.
+                 */
+                /*
 
 		IN_PORT(remote_daemon) = talkd[otalk].port;
 		n = sendto(talkd[otalk].fd, (char *) &m1, sizeof(m1),
 			   0, (struct sockaddr *) & remote_daemon, sizeof(remote_daemon));
 		if (n != sizeof(m1))
 			show_error("Warning: cannot write to old talk daemon");
+		*/
 
 		tv.tv_sec = 4L;
 		tv.tv_usec = 0L;
@@ -518,10 +500,7 @@ find_daemon(addr)
 	return 0;
 }
 
-static ylong
-make_net_mask(addr)
-	ylong addr;
-{
+static ylong make_net_mask(ylong addr) {
 	if (addr & (ylong) 0xff)
 		return (ylong) 0xffffffff;
 	if (addr & (ylong) 0xffff)
@@ -538,9 +517,7 @@ make_net_mask(addr)
 /*
  * Initialize sockets and message parameters.
  */
-void
-init_socket()
-{
+void init_socket(void) {
 	/* init daemons in order of preference */
 
 	ntalk = init_daemon("ntalk", 518, (yaddr)&nmsg, sizeof(nmsg),
@@ -567,9 +544,7 @@ init_socket()
  * Close every open descriptor.  This should only be used for a quick exit...
  * it does not gracefully shut systems down.
  */
-void
-close_all()
-{
+void close_all(void) {
 	register yuser *u;
 	register int d;
 
@@ -593,11 +568,7 @@ close_all()
 /*
  * First, a quick and easy interface for the user sockets.
  */
-int
-send_dgram(user, type)
-	yuser *user;
-	u_char type;
-{
+int send_dgram(yuser *user, u_char type) {
 	ylong addr;
 	int d;
 
@@ -731,10 +702,7 @@ send_dgram(user, type)
  * Next, an interface for the auto-invite socket.  The auto-invite socket
  * always sends to the caller's host, and always does just an invite.
  */
-int
-send_auto(type)
-	u_char type;
-{
+int send_auto(u_char type) {
 	int dtype, d, rc;
 
 	if (autofd < 0)
@@ -767,9 +735,7 @@ send_auto(type)
 /*
  * Shut down the auto-invitation system.
  */
-void
-kill_auto()
-{
+void kill_auto(void) {
 	if (autofd < 0)
 		return;
 	(void) send_auto(DELETE);
@@ -781,10 +747,7 @@ kill_auto()
 /*
  * Create a TCP socket for communication with other talk users.
  */
-int
-newsock(user)
-	yuser *user;
-{
+int newsock(yuser *user) {
 	int fd;
 	socklen_t socklen;
 
@@ -821,10 +784,7 @@ newsock(user)
 /*
  * Connect to another user's communication socket.
  */
-int
-connect_to(user)
-	yuser *user;
-{
+int connect_to(yuser *user) {
 	register yuser *u;
 	int fd;
 	socklen_t socklen;
@@ -872,10 +832,7 @@ connect_to(user)
 /*
  * Find a host's address.
  */
-ylong
-get_host_addr(hostname)
-	char *hostname;
-{
+ylong get_host_addr(char *hostname) {
 	struct hostent *host;
 	ylong addr;
 
@@ -900,10 +857,7 @@ get_host_addr(hostname)
  * Find a host name by host address. [19NOV96 Roger]: try to find the fqdn
  * (1st alias with a dot)
  */
-char *
-host_name(addr)
-	ylong addr;
-{
+char * host_name(ylong addr) {
 	struct hostent *host;
 	char **s;
 
@@ -928,10 +882,7 @@ host_name(addr)
  * useful especially over routers where "foo.com" is known as the
  * differently-addressed "bar.com" to host "xyzzy.com".
  */
-void
-readdress_host(from_id, to_id, on_id)
-	char *from_id, *to_id, *on_id;
-{
+void readdress_host(char *from_id, char *to_id, char *on_id) {
 	register readdr *new;
 	ylong from_addr, to_addr, on_addr;
 	ylong from_mask, to_mask, on_mask;

@@ -19,6 +19,7 @@
  *
  */
 
+#include "config.h"
 #include "header.h"
 #include "mem.h"
 
@@ -34,14 +35,7 @@ static mem_list *glist = NULL;
 /*
  * Add to linked list
  */
-mem_list *
-add_area(list, addr, size, line, file)
-	mem_list *list;
-	yaddr addr;
-	size_t size;
-	int line;
-	char *file;
-{
+mem_list * add_area(mem_list *list, yaddr addr, size_t size, int line, char *file) {
 	mem_list *entry;
 	if (addr == 0)
 		return list;
@@ -57,11 +51,7 @@ add_area(list, addr, size, line, file)
 	return entry;
 }
 
-mem_list *
-find_area(list, addr)
-	mem_list *list;
-	yaddr addr;
-{
+mem_list * find_area(mem_list *list, yaddr addr) {
 	mem_list *it = list;
 	while (it != NULL) {
 		if (it->addr == addr)
@@ -74,10 +64,7 @@ find_area(list, addr)
 /*
  * Delete from list
  */
-mem_list *
-del_area(list, entry)
-	mem_list *list, *entry;
-{
+mem_list * del_area(mem_list *list, mem_list *entry) {
 	if (list == entry)
 		list = entry->next;
 
@@ -103,12 +90,7 @@ del_area(list, entry)
 /*
  * Change stored size
  */
-void
-change_area(list, addr, new_addr, size)
-	mem_list *list;
-	yaddr addr, new_addr;
-	size_t size;
-{
+void change_area(mem_list *list, yaddr addr, yaddr new_addr, size_t size) {
 	mem_list *it = list;
 	while (it != NULL) {
 		if (it->addr == addr) {
@@ -126,17 +108,11 @@ change_area(list, addr, new_addr, size)
 /*
  * Allocate memory
  */
-yaddr
 #ifdef YTALK_DEBUG
-real_get_mem(n, line, file)
-	size_t n;
-	int line;
-	char *file;
+yaddr real_get_mem(size_t n, int line, char *file) {
 #else
-get_mem(n)
-	size_t n;
+yaddr get_mem(size_t n) {
 #endif
-{
 	yaddr out;
 	if ((out = (yaddr) malloc((size_t) n)) == NULL) {
 		show_error("malloc() failed");
@@ -152,19 +128,11 @@ get_mem(n)
  * Free and clear memory
  */
 #ifndef YTALK_DEBUG
-void
-free_mem(addr)
-	yaddr addr;
-{
+void free_mem(yaddr addr) {
 	free(addr);
 }
 #else
-void
-real_free_mem(addr, line, file)
-	yaddr addr;
-	int line;
-	char *file;
-{
+void real_free_mem(yaddr addr, int line, char *file) {
 	mem_list *entry;
 	if ((entry = find_area(glist, addr)) != NULL) {
 		memset(entry->addr, '\0', (size_t) entry->size);
@@ -185,19 +153,11 @@ real_free_mem(addr, line, file)
 /*
  * Reallocate memory
  */
-yaddr
 #ifdef YTALK_DEBUG
-real_realloc_mem(p, n, line, file)
-	yaddr p;
-	size_t n;
-	int line;
-	char *file;
+yaddr real_realloc_mem(yaddr p, size_t n, int line, char *file) {
 #else
-realloc_mem(p, n)
-	yaddr p;
-	size_t n;
+yaddr realloc_mem(yaddr p, size_t n) {
 #endif
-{
 	yaddr out;
 	if (p == NULL) {
 #ifdef YTALK_DEBUG
@@ -221,9 +181,7 @@ realloc_mem(p, n)
 /*
  * Clear all memory
  */
-void
-clear_all()
-{
+void clear_all(void) {
 	mem_list *it;
 	fprintf(stderr, "Clearing memory\n");
 	while (glist != NULL) {
