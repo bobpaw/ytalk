@@ -410,6 +410,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 TESTS = sanity get-pty.sh
+EXTRA_DIST = $(TESTS)
 AM_CPPFLAGS = -I.. -DYTALK_TEST
 all: all-am
 
