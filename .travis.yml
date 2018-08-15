@@ -28,7 +28,7 @@ addons:
     - perl
 
 before_script:
-  - test -f ytalk-* && tar zxf ytalk-*.tar.gz
+  - if [ -f ytalk-* ]; then tar zxf ytalk-*.tar.gz; fi
 
 
 
