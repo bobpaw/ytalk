@@ -16,14 +16,11 @@ ytalk_SOURCES = \
 	mem.c \
 	vt100.c \
 	gtalk.c \
-	header.h \
-	cwin.h \
-	mem.h \
-	socket.h \
-	menu.h \
-	gtalk.h
+	cmdline-ytalk.c
 
 ptyalloc_SOURCES = ptyalloc.c getpty.c
 ptyalloc_CPPFLAGS = -DYTALK_TEST
 
 AM_CPPFLAGS = -I.. -include "config.h"
+
+noinst_HEADERS = header.h cwin.h mem.h socket.h menu.h gtalk.h cmdline-ytalk.h

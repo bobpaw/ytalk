@@ -19,6 +19,7 @@
  */
 
 #include "config.h"
+#include "cmdline-ytalk.h"
 #include "header.h"
 #include "menu.h"
 #include "mem.h"
@@ -122,55 +123,19 @@ then type 'make clean' and 'make'.\n");
 	exit(YTE_INIT);
 #endif
 
-	/* search for options */
+	struct gengetopt_args_info args_info;
+	if (cmdline_parser(argc, argv, &args_info) != 0) exit(EXIT_FAILURE);
 
-	prog = *argv;
-	argv++, argc--;
-	while (argc > 0 && **argv == '-') {
-		if (strcmp(*argv, "-Y") == 0) {
-			yflg++;
-			argv++, argc--;
-		} else if (strcmp(*argv, "-E") == 0) {
-			eflg++;
-			argv++, argc--;
-		} else if (strcmp(*argv, "-i") == 0) {
-			iflg++;
-			argv++, argc--;
-		} else if (strcmp(*argv, "-v") == 0) {
-			vflg++;
-			argv++, argc--;
-		} else if (strcmp(*argv, "-h") == 0) {
-			argv++;
-			vhost = *argv++;
-			argc -= 2;
-		} else if (strcmp(*argv, "-s") == 0) {
-			sflg++;	/* immediately start a shell */
-			argv++, argc--;
-		} else if (strcmp(*argv, "-q") == 0) {
-			qflg++;
-			argv++, argc--;
-		} else
-			argc = 0;	/* force a Usage error */
-	}
-
-	if (vflg) {
-		/* print version and exit */
-		fprintf(stderr, "YTalk %s\n", PACKAGE_VERSION);
-		exit(YTE_SUCCESS);
-	}
-	/* check for users */
-
-	if (argc <= 0) {
-		fprintf(stderr, "Usage:    %s [options] user[@host][#tty]...\n", prog);
-		fprintf(stderr, "\
-Options:     -i             --    no auto-invite port\n\
-             -Y             --    require caps on all y/n answers\n\
-             -E             --    require <esc> before y/n answers\n\
-             -s             --    start a shell\n\
-             -q             --    prompt before quitting\n\
-             -v             --    print program version\n\
-             -h host_or_ip  --    select interface or virtual host\n");
-		exit(YTE_INIT);
+	if (args_info.no_auto_invite_given) iflg++;
+	if (args_info.caps_given) yflg++;
+	if (args_info.escape_given) eflg++;
+	if (args_info.shell_given) sflg++;
+	if (args_info.prompt_given) qflg++;
+	if (args_info.host_given) vhost = args_info.host_arg;
+	if (args_info.inputs_num == 0) {
+		cmdline_parser_print_help();
+		cmdline_parser_free(&args_info);
+		exit(EXIT_SUCCESS);
 	}
 
 	/* set up signals */
@@ -202,14 +167,14 @@ Options:     -i             --    no auto-invite port\n\
 
 	init_term();
 	init_socket();
-	for (; argc > 0; argc--, argv++)
-		invite(*argv, 1);
+	for (int i = 0; i < args_info.inputs_num;++i)
+		invite(args_info.inputs[i], 1);
 	if (sflg)
 		execute(NULL);
 	else
 		msg_term(me, "Waiting for connection...");
 	main_loop();
 	bail(YTE_SUCCESS_PROMPT);
-
-	return 0;
+	cmdline_parser_free(&args_info);
+	exit(EXIT_SUCCESS);
 }

@@ -1,0 +1,7 @@
+args "--file-name=cmdline-ytalk --unamed-opt='user[@host][#tty]'"
+option "no-auto-invite" i "No auto-invite port" optional
+option "caps" Y "Require caps on all y/n answers" optional
+option "escape" E "Require <esc> before y/n answers" optional
+option "shell" s "Start a shell" optional
+option "prompt" q "Prompt before quitting" optional
+option "host" h "Select interface or virtual host" string optional

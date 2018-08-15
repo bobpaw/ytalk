@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -93,7 +94,8 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
+	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
@@ -107,7 +109,8 @@ ptyalloc_LDADD = $(LDADD)
 am_ytalk_OBJECTS = main.$(OBJEXT) term.$(OBJEXT) user.$(OBJEXT) \
 	fd.$(OBJEXT) comm.$(OBJEXT) menu.$(OBJEXT) socket.$(OBJEXT) \
 	rc.$(OBJEXT) exec.$(OBJEXT) getpty.$(OBJEXT) cwin.$(OBJEXT) \
-	mem.$(OBJEXT) vt100.$(OBJEXT) gtalk.$(OBJEXT)
+	mem.$(OBJEXT) vt100.$(OBJEXT) gtalk.$(OBJEXT) \
+	cmdline-ytalk.$(OBJEXT)
 ytalk_OBJECTS = $(am_ytalk_OBJECTS)
 ytalk_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -149,6 +152,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+HEADERS = $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -273,16 +277,12 @@ ytalk_SOURCES = \
 	mem.c \
 	vt100.c \
 	gtalk.c \
-	header.h \
-	cwin.h \
-	mem.h \
-	socket.h \
-	menu.h \
-	gtalk.h
+	cmdline-ytalk.c
 
 ptyalloc_SOURCES = ptyalloc.c getpty.c
 ptyalloc_CPPFLAGS = -DYTALK_TEST
 AM_CPPFLAGS = -I.. -include "config.h"
+noinst_HEADERS = header.h cwin.h mem.h socket.h menu.h gtalk.h cmdline-ytalk.h
 all: all-am
 
 .SUFFIXES:
@@ -376,6 +376,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdline-ytalk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exec.Po@am__quote@
@@ -522,7 +523,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(PROGRAMS) $(HEADERS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
