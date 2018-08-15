@@ -1,0 +1,39 @@
+# Project is written in C (defines some useful defaults)
+language: c
+
+# Save time by only getting the current repository status
+git:
+  depth: false
+
+# Test both clang and gcc
+compiler:
+  - clang
+  - gcc
+
+# Test both linux and osx
+os:
+  - linux
+  - osx
+
+# Install requirements with apt
+addons:
+  apt:
+    packages:
+    - ncurses-base
+    - libncurses-dev
+    - make
+    - autoconf
+    - automake
+    - m4
+    - perl
+
+before_script:
+  - tar zxf ytalk-*.tar.gz
+
+
+
+# Actually check if it works
+script:
+  - autoreconf -f -i && ./configure && make && make check
+  - cd ytalk-*
+  - ./configure && make && make check
