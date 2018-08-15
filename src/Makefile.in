@@ -281,7 +281,8 @@ ytalk_SOURCES = \
 
 ptyalloc_SOURCES = ptyalloc.c getpty.c
 ptyalloc_CPPFLAGS = -DYTALK_TEST
-AM_CPPFLAGS = -I.. -include "config.h"
+AM_CFLAGS = -Wall -pedantic
+AM_CPPFLAGS = 
 noinst_HEADERS = header.h cwin.h mem.h socket.h menu.h gtalk.h cmdline-ytalk.h
 all: all-am
 

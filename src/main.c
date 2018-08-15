@@ -112,8 +112,7 @@ static RETSIGTYPE got_sig(int n) {
 
 /* MAIN  */
 int main(int argc, char * argv[]) {
-	int sflg = 0, yflg = 0, iflg = 0, vflg = 0, qflg = 0, eflg = 0;
-	char *prog;
+	int sflg = 0, yflg = 0, iflg = 0, qflg = 0, eflg = 0;
 
 #if SIZEOF_U_INT != 4
 	/* check for a 64-bit mis-compile */
