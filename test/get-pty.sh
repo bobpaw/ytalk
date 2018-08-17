@@ -1,2 +1,2 @@
 #!/bin/sh
-exec ../src/ptyalloc >&2 > /dev/null
+exec ../src/ptyalloc > /dev/null 2>&1

@@ -18,26 +18,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "menu.h"
-
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-
-#include <signal.h>
-
-#ifdef _AIX
-# include <sys/select.h>
-#endif
+#include "fd.h"
 
 static fd_set fdset;		/* descriptors to select on */
 static fd_set fdtmp;		/* descriptors to select on (input_loop) */
@@ -89,8 +70,8 @@ void remove_fd(int fd) {
 /*
  * Read an entire length of data. Returns 0 on success, -1 on error.
  */
-int full_read(int fd, register char *buf, register size_t len) {
-	register int rc;
+int full_read(int fd, char *buf, size_t len) {
+	int rc;
 
 	while (len > 0) {
 		if ((rc = read(fd, buf, len)) <= 0)
@@ -106,7 +87,7 @@ int full_read(int fd, register char *buf, register size_t len) {
 static ylong lastping, curtime;
 
 void main_loop(void) {
-	register int fd, rc;
+	int fd, rc;
 	struct timeval tv;
 
 #ifdef HAVE_SIGPROCMASK
@@ -238,7 +219,7 @@ void main_loop(void) {
  * definition library.  Hack?  maybe.  Fun, tho.
  */
 void input_loop(void) {
-	register int fd, rc;
+	int fd, rc;
 	struct timeval tv;
 	static int left_loop;
 

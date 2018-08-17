@@ -18,14 +18,6 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "mem.h"
-
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
-
 #include "menu.h"
 
 int show_user_list();
@@ -44,8 +36,6 @@ static int menu_long;		/* longest item of current menu */
 static int menu_line;		/* current line number of menu */
 static int text_pos = -1;	/* text offset if non-negative */
 static int text_ypos = -1, text_xpos = -1;	/* text coord if non-negative */
-
-extern void raw_term();		/* our raw interface to the terminal */
 
 /* some menus... */
 
@@ -180,7 +170,7 @@ static void main_menu_sel(ychar key) {
 }
 
 static void option_menu_sel(ychar key) {
-	register yuser *u;
+	yuser *u;
 	ylong old_flags;
 
 	old_flags = def_flags;
@@ -220,8 +210,8 @@ static void option_menu_sel(ychar key) {
 }
 
 static void user_menu_sel(ychar key) {
-	register int i;
-	register yuser *u;
+	int i;
+	yuser *u;
 
 	/*
 	 * Remember... the user list could have changed between the time I
@@ -269,7 +259,7 @@ static void pad_str(char *from, int len, char *to) {
  * End any menu processing.
  */
 void kill_menu(void) {
-	register int i;
+	int i;
 
 	if (menu_ptr != NULL) {
 		menu_ptr = NULL;
@@ -291,9 +281,9 @@ void kill_menu(void) {
  * Update menu information.
  */
 void update_menu(void) {
-	register ychar *c;
-	register char *d;
-	register int j, i, y, x;
+	ychar *c;
+	char *d;
+	int j, i, y, x;
 	static ychar *buf = NULL;
 	static int buflen = 0;
 
@@ -316,7 +306,7 @@ void update_menu(void) {
 						text_str[text_pos] = (char) ic;
 						if (text_ypos >= 0)
 							raw_term(me, text_ypos, text_xpos + text_pos,
-								 text_str + text_pos, 1);
+								 (ychar*) (text_str + text_pos), 1);
 						text_str[++text_pos] = '\0';
 					}
 				} else if (ic == me->old_rub) {
@@ -324,7 +314,7 @@ void update_menu(void) {
 						text_str[--text_pos] = '\0';
 						if (text_ypos >= 0)
 							raw_term(me, text_ypos, text_xpos + text_pos,
-								 " ", 1);
+								 (ychar*) " ", 1);
 					}
 				} else if (ic == me->KILL || ic == me->WORD) {
 					if (text_pos > 0) {
@@ -332,7 +322,7 @@ void update_menu(void) {
 						text_pos = 0;
 						if (text_ypos > 0)
 							raw_term(me, text_ypos, text_xpos,
-							"     ", menu_long);
+							(ychar*) "     ", menu_long);
 					}
 				} else if (ic == '\n' || ic == '\r') {
 					if (text_pos > 0) {
@@ -410,7 +400,7 @@ void update_menu(void) {
 	}
 	if (menu_long > buflen) {
 		buflen = menu_long + 64;
-		buf = (ychar *) realloc_mem(buf, buflen + MENU_EXTRA);
+		buf = (ychar *) get_mem(buflen + MENU_EXTRA);
 	}
 	/* get starting X and Y coord */
 
@@ -418,7 +408,7 @@ void update_menu(void) {
 	if (menu_line == 0) {
 		if (menu_len + 2 <= me->t_rows) {
 			y = center(me->t_rows, menu_len + 2);
-			raw_term(me, y++, x, "#####", menu_long + MENU_EXTRA);
+			raw_term(me, y++, x, (ychar*) "#####", menu_long + MENU_EXTRA);
 		} else
 			y = 0;
 	} else
@@ -461,7 +451,7 @@ void update_menu(void) {
 		}
 		*(c++) = ' ';
 		*(c++) = '#';
-		raw_term(me, y, x, buf, c - buf);
+		raw_term(me, y, x, (ychar*) buf, c - buf);
 	}
 	if (y < me->t_rows) {
 		if (i < menu_len) {
@@ -477,10 +467,10 @@ void update_menu(void) {
 				*(c++) = ' ';
 			*(c++) = ' ';
 			*(c++) = '#';
-			raw_term(me, y, x, buf, c - buf);
+			raw_term(me, y, x, (ychar*) buf, c - buf);
 			raw_term(me, y, x + 12, NULL, 0);
 		} else {
-			raw_term(me, y, x, "#####", menu_long + MENU_EXTRA);
+			raw_term(me, y, x, (ychar*) "#####", menu_long + MENU_EXTRA);
 			if (menu_ptr == text_menu)
 				raw_term(me, text_ypos, text_xpos + text_pos, NULL, 0);
 			else if (menu_ptr == yes_no_menu)
@@ -496,7 +486,7 @@ void update_menu(void) {
  * Show a menu, overriding any existing menu.
  */
 int show_menu(menu_item *menu, int len) {
-	register int i, j;
+	int i, j;
 
 	if (me->t_rows < 2) {
 		show_error("show_menu: window too small");
@@ -583,7 +573,7 @@ int show_main_menu(void) {
 }
 
 int show_option_menu(void) {
-	register int i = 0;
+	int i = 0;
 
 	option_menu[i].item = "Options Menu";
 	option_menu[i].func = NULL;
@@ -655,8 +645,8 @@ int show_option_menu(void) {
 }
 
 int show_user_menu(char *title, void (*func) (), int metoo) {
-	register int i;
-	register yuser *u;
+	int i;
+	yuser *u;
 
 	user_menu[0].item = title;
 	user_menu[0].func = func;
@@ -709,8 +699,8 @@ void stalkversion(yuser *user, char *buf, size_t len) {
 }
 
 int show_user_list(void) {
-	register int i;
-	register yuser *u;
+	int i;
+	yuser *u;
 	static char name_buf[25], stat_buf[25];
 
 	i = 0;
@@ -765,7 +755,7 @@ int show_user_list(void) {
 }
 
 int show_error_menu(char *str1, char *str2) {
-	register int i;
+	int i;
 
 	for (i = 0; error_menu[i].key != '\0'; i++)
 		if (error_menu[i].item == NULL) {

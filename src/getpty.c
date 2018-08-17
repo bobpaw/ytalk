@@ -19,30 +19,20 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
+#include "getpty.h"
 
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
-
-#ifndef SIGCHLD
-# define SIGCLD SIGCHLD
-#endif
-
-#if !defined(HAVE_OPENPTY) || defined(YTALK_TEST)
 int getpty(char *name) {
-	register int pty, tty;
+	int pty, tty;
 	char *tt;
 
-#ifdef USE_DEV_PTMX
+	#ifdef USE_DEV_PTMX
 	RETSIGTYPE(*sigchld) ();
 	int r = 0;
-#endif /* USE_DEV_PTMX */
+	#endif // USE_DEV_PTMX
 
 	/* look for a Solaris/UNIX98-type pseudo-device */
 
-#ifdef USE_DEV_PTMX
+	#ifdef USE_DEV_PTMX
 	if ((pty = open("/dev/ptmx", O_RDWR)) >= 0) {
 		/* grantpt() might want to fork/exec! */
 		sigchld = signal(SIGCHLD, SIG_DFL);
@@ -52,15 +42,15 @@ int getpty(char *name) {
 		signal(SIGCHLD, sigchld);
 		if (r == 0 && tt != NULL) {
 			strcpy(name, tt);
-#ifdef YTALK_SUNOS
+		#ifdef YTALK_SUNOS
 			needtopush = 1;
-#endif /* YTALK_SUNOS */
+		#endif // YTALK_SUNOS
 			return pty;
 		}
 	}
-#endif /* USE_DEV_PTMX */
+	#endif /* USE_DEV_PTMX */
 
-#ifdef HAVE_TTYNAME
+	#ifdef HAVE_TTYNAME
 
 	/* look for an older SYSV-type pseudo device */
 	if ((pty = open("/dev/ptc", O_RDWR)) >= 0) {
@@ -70,7 +60,7 @@ int getpty(char *name) {
 		}
 		close(pty);
 	}
-#endif /* HAVE_TTYNAME */
+	#endif // HAVE_TTYNAME
 
 	/* scan Berkeley-style */
 	strcpy(name, "/dev/ptyp0");
@@ -98,5 +88,4 @@ int getpty(char *name) {
 	errno = ENOENT;
 	return -1;
 }
-#endif /* !HAVE_OPENPTY || YTALK_TEST */
 

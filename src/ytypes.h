@@ -1,56 +1,25 @@
-/*
- * src/header.h
- *
- * YTalk
- *
- * Copyright (C) 1990,1992,1993 Britt Yenne
- * Currently maintained by Andreas Kling
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+#ifndef YTALK_YTYPES_H_
+#define YTALK_YTYPES_H_
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
+#endif
 
-#include <sys/types.h>
-#include <sys/param.h>
+#ifdef HAVE_SYS_TYPES_H
+	#include <sys/types.h>
+#endif
 
 #ifdef YTALK_HPUX
-# define _XOPEN_SOURCE_EXTENDED
-# include <sys/socket.h>
-# undef _XOPEN_SOURCE_EXTENDED
+	#define _XOPEN_SOURCE_EXTENDED
+	#include <sys/socket.h>
+	#undef _XOPEN_SOURCE_EXTENDED
 #else
-# include <sys/socket.h>
+	#include <sys/socket.h>
 #endif
 
-#include <netinet/in.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
-/* We may not have prototypes for these functions. */
-#if defined(HAVE_PTSNAME) && defined(HAVE_GRANTPT) && defined(HAVE_UNLOCKPT)
-extern int grantpt();
-extern int unlockpt();
-extern char *ptsname();
+#ifdef HAVE_NETINET_IN_H
+	#include <netinet/in.h>
 #endif
-
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-
-#define VMAJOR	3		/* major version number */
-#define VMINOR	3		/* minor version number */
-#define VPATCH	0		/* patch level */
 
 #define EIGHT_BIT_CLEAN		/* take this one out if you don't want it */
 
@@ -75,6 +44,10 @@ extern char *ptsname();
 #define YTP_OLD	20		/* YTalk versions before 3.0 */
 #define YTP_NEW	27		/* YTalk versions 3.0 and up */
 
+#define VMAJOR 3
+#define VMINOR 3
+#define VPATCH 1
+
 /* ---- types ---- */
 
 typedef void *yaddr;		/* any pointer address */
@@ -92,7 +65,8 @@ typedef struct {
 	u_char w_rows, w_cols;	/* window size FOR PROTOCOL YTP_OLD */
 	char protocol;		/* ytalk protocol -- see above */
 	char pad1;		/* zeroed out */
-	short vmajor, vminor;	/* version numbers */
+  short vmajor;	/* version numbers */
+  short vminor;
 	u_short rows, cols;	/* his window size over there */
 	u_short my_rows, my_cols;	/* my window size over there */
 	ylong pid;		/* my process id */
@@ -282,7 +256,7 @@ extern yuser *fd_to_user[MAX_FILES];	/* convert file descriptors to users */
 extern yuser *key_to_user[128];	/* convert menu ident chars to users */
 extern char errstr[MAXERR];	/* temporary string for errors */
 extern ylong def_flags;		/* default FL_* flags */
-extern int user_winch;		/* user window/status changed flag */
+//extern int user_winch;		/* user window/status changed flag */
 
 extern ychar *io_ptr;		/* user input pointer */
 extern int io_len;		/* user input count */
@@ -306,99 +280,4 @@ struct alias {
 #define ALIAS_BEFORE    1
 #define ALIAS_AFTER     2
 
-
-/* ---- global functions ---- */
-
-extern void bail( /* int */ );	/* main.c */
-extern char *str_copy( /* string */ );	/* main.c */
-extern void show_error( /* str */ );	/* main.c */
-
-extern void init_term();	/* term.c */
-extern void set_terminal_size( /* fd, rows, cols */ );	/* term.c */
-extern void set_terminal_flags( /* fd */ );	/* term.c */
-extern int what_term();		/* term.c */
-extern void end_term();		/* term.c */
-extern int open_term( /* yuser, title */ );	/* term.c */
-extern void close_term( /* yuser */ );	/* term.c */
-extern void addch_term(register yuser *user, register ychar c);	/* term.c */
-extern void move_term();	/* term.c */
-extern void fill_term(yuser *user, int y1, int x1, int y2, int x2, ychar c);/* term.c */
-extern void clreol_term( /* yuser */ );	/* term.c */
-extern void clreos_term( /* yuser */ );	/* term.c */
-extern void scroll_term( /* yuser */ );	/* term.c */
-extern void rev_scroll_term( /* yuser */ );	/* term.c */
-extern void flush_term( /* yuser */ );	/* term.c */
-extern void rub_term( /* yuser */ );	/* term.c */
-extern void word_term( /* yuser */ );	/* term.c */
-extern void kill_term( /* yuser */ );	/* term.c */
-extern void tab_term( /* yuser */ );	/* term.c */
-extern void newline_term( /* yuser */ );	/* term.c */
-extern void lf_term( /* yuser */ );	/* term.c */
-extern void add_line_term( /* yuser, num */ );	/* term.c */
-extern void del_line_term( /* yuser, num */ );	/* term.c */
-extern void add_char_term( /* yuser, num */ );	/* term.c */
-extern void del_char_term( /* yuser, num */ );	/* term.c */
-extern void redraw_term( /* yuser, start_row */ );	/* term.c */
-extern void keypad_term( /* yuser, int */ );	/* term.c */
-extern void resize_win( /* yuser, h, w */ );	/* term.c */
-extern void set_win_region( /* yuser, h, w */ );	/* term.c */
-extern void end_win_region( /* yuser */ );	/* term.c */
-extern void set_scroll_region( /* yuser, top, bottom */ );	/* term.c */
-extern void msg_term( /* yuser, str */ );	/* term.c */
-extern void spew_term( /* yuser, fd, rows, cols */ );	/* term.c */
-extern int center( /* width, n */ );	/* term.c */
-extern void redraw_all_terms();	/* term.c */
-extern void set_raw_term();	/* term.c */
-extern void set_cooked_term();	/* term.c */
-
-extern void init_user();	/* user.c */
-extern yuser *new_user( /* name, host, tty */ );	/* user.c */
-extern void free_user( /* yuser */ );	/* user.c */
-extern yuser *find_user( /* name, host_addr, pid */ );	/* user.c */
-extern void generate_full_name( /* yuser */ );	/* user.c */
-extern void free_users();	/* user.c */
-
-extern void init_fd();		/* fd.c */
-extern void add_fd( /* fd, func */ );	/* fd.c */
-extern void remove_fd( /* fd */ );	/* fd.c */
-extern int full_read( /* fd, buf, len */ );	/* fd.c */
-extern void main_loop();	/* fd.c */
-extern void input_loop();	/* fd.c */
-extern void bail_loop();	/* fd.c */
-
-extern yuser *invite( /* username, announce */ );	/* comm.c */
-extern void house_clean();	/* comm.c */
-extern void send_winch( /* yuser */ );	/* comm.c */
-extern void send_region();	/* comm.c */
-extern void send_end_region();	/* comm.c */
-extern void send_users( /* buf, len */ );	/* comm.c */
-extern void show_input( /* user, buf, len */ );	/* comm.c */
-extern void my_input( /* buf, len */ );	/* comm.c */
-extern void lock_flags( /* flags */ );	/* comm.c */
-extern void unlock_flags();	/* comm.c */
-extern void rering_all();	/* comm.c */
-
-extern void init_socket();	/* socket.c */
-extern void close_all();	/* socket.c */
-extern int send_dgram(yuser * user, u_char type);	/* socket.c */
-extern int send_auto(u_char type);	/* socket.c */
-extern void kill_auto();	/* socket.c */
-extern int newsock( /* yuser */ );	/* socket.c */
-extern int connect_to( /* yuser */ );	/* socket.c */
-extern ylong get_host_addr( /* hostname */ );	/* socket.c */
-extern char *host_name( /* addr */ );	/* socket.c */
-extern void readdress_host( /* from, to, on */ );	/* socket.c */
-
-extern void read_ytalkrc();	/* rc.c */
-extern char *resolve_alias( /* uh */ );	/* rc.c */
-
-extern void execute( /* command */ );	/* exec.c */
-extern void update_exec();	/* exec.c */
-extern void kill_exec();	/* exec.c */
-extern void winch_exec();	/* exec.c */
-
-extern int getpty( /* char* */ );	/* getpty.c */
-
-extern void vt100_process(yuser *user, char data);	/* vt100.c */
-
-/* EOF */
+#endif // YTALK_YTYPES_H_

@@ -19,9 +19,6 @@
  *
  */
 
-#include "header.h"
-#include "cwin.h"
-#include "mem.h"
 #include "gtalk.h"
 
 void gtalk_process(yuser * user, ychar data) {
@@ -62,8 +59,7 @@ void gtalk_process(yuser * user, ychar data) {
 char * gtalk_parse_version(char * str, ychar ukill) {
 	char *p, *e;
 	p = strchr(str, ' ');
-	if (p != NULL)
-		p = strchr(p + 1, ' ');
+	if (p != NULL) p = strchr(p + 1, ' ');
 	if (p != NULL) {
 		p++;
 		for (e = p; *e; e++)

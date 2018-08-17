@@ -19,12 +19,25 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
+#endif
+
+#include "ytypes.h"
+#include "mem.h"
+#include "fd.h"
+
+#ifndef YTALK_GTALK_H_
+#define YTALK_GTALK_H
+
 #define GTALK_ESCAPE			0x03
 
 #define GTALK_PERSONAL_NAME		0x03
 #define GTALK_IMPORT_REQUEST	0x06
 #define GTALK_VERSION_MESSAGE	0x08
 
-extern void gtalk_process(yuser *user, ychar data);
+void gtalk_process(yuser *user, ychar data);
 
-extern char *gtalk_parse_version(char *str, ychar ukill);
+char *gtalk_parse_version(char *str, ychar ukill);
+
+#endif // YTALK_GTALK_H_

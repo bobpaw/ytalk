@@ -18,11 +18,65 @@
  *
  */
 
-#include <netdb.h>
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
+#endif
+
+#include <stdio.h>
+
+#ifdef HAVE_STRING_H
+	#include <string.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+	#include <netdb.h>
+#endif
+
+#include <errno.h>
+
+#ifdef TIME_WITH_SYS_TIME
+	#include <sys/time.h>
+	#include <time.h>
+#else
+	#ifdef HAVE_SYS_TIME
+		#include <sys/time.h>
+	#else
+		#include <time.h>
+	#endif
+#endif
+
+#ifdef HAVE_ARPA_INET_H
+	#include <arpa/inet.h>
+#else
+ylong inet_addr();
+char *inet_ntoa();
+#endif
+
+#ifdef _AIX
+	#include <sys/select.h>
+#endif
+
+#include "ytypes.h"
+#include "mem.h"
 
 /* ---- talk daemon information structure ---- */
 
+#ifndef YTALK_SOCKET_H_
+#define YTALK_SOCKET_H_
+
 #define MAXDAEMON	5
+
+#ifndef IN_ADDR
+	#define IN_ADDR(s)	((s).sin_addr.s_addr)
+#endif
+
+#ifndef IN_PORT
+	#define IN_PORT(s)	((s).sin_port)
+#endif
+
+#ifndef SOCK_EQUAL
+	#define SOCK_EQUAL(s,c)	(IN_PORT(s) == IN_PORT(c) && IN_ADDR(s) == IN_ADDR(c))
+#endif
 
 struct _talkd {
 	struct sockaddr_in sock;/* socket */
@@ -138,4 +192,15 @@ typedef struct {
 #define AUTO_LOOK_UP	5	/* look up auto-invitation (remote) */
 #define AUTO_DELETE	6	/* delete erroneous auto-invitation (remote) */
 
-/* EOF */
+void init_socket();	/* socket.c */
+void close_all();	/* socket.c */
+int send_dgram(yuser * user, u_char type);	/* socket.c */
+int send_auto(u_char type);	/* socket.c */
+void kill_auto();	/* socket.c */
+int newsock( /* yuser */ );	/* socket.c */
+int connect_to( /* yuser */ );	/* socket.c */
+ylong get_host_addr( /* hostname */ );	/* socket.c */
+char *host_name( /* addr */ );	/* socket.c */
+void readdress_host( /* from, to, on */ );	/* socket.c */
+
+#endif // YTALK_SOCKET_H_

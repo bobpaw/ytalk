@@ -19,29 +19,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "mem.h"
-
-#ifdef HAVE_NCURSES_H
-# include <ncurses.h>
-#else
-# include <curses.h>
-#endif
-
-/* Some systems, notably Solaris, don't have sys/signal.h */
-#include <signal.h>
-
 #include "cwin.h"
-
-typedef struct _ywin {
-	struct _ywin *next;	/* next ywin in linked list */
-	yuser *user;		/* user pointer */
-	WINDOW *win;		/* window pointer */
-	int height, width;	/* height and width in characters */
-	int row, col;		/* row and column position on screen */
-	char *title;		/* window title string */
-} ywin;
 
 static ywin *head;		/* head of linked list */
 
@@ -49,7 +27,7 @@ static ywin *head;		/* head of linked list */
  * Take input from the user.
  */
 static void curses_input(int fd) {
-	register int rc;
+	int rc;
 	static ychar buf[MAXBUF];
 
 	if ((rc = read(fd, buf, MAXBUF)) <= 0) {
@@ -61,8 +39,8 @@ static void curses_input(int fd) {
 }
 
 static ywin * new_ywin(yuser * user, char * title) {
-	register ywin *out;
-	register int len;
+	ywin *out;
+	int len;
 
 	len = strlen(title);
 	out = (ywin *) get_mem(sizeof(ywin) + len + 1);
@@ -89,8 +67,8 @@ static void make_win(ywin * w, int height, int width, int row, int col) {
 }
 
 static void draw_title(ywin * w) {
-	register int pad, x;
-	register char *t;
+	int pad, x;
+	char *t;
 
 	if ((int) strlen(w->title) > w->width) {
 		for (x = 0; x < w->width; x++)
@@ -131,8 +109,8 @@ static int win_size(int wins) {
  * Break down and redraw all user windows.
  */
 static void curses_redraw(void) {
-	register ywin *w;
-	register int row, wins, wsize;
+	ywin *w;
+	int row, wins, wsize;
 
 	/* kill old windows */
 
@@ -191,7 +169,7 @@ static void curses_start(void) {
  * Restart curses... window size has changed.
  */
 static RETSIGTYPE curses_restart(void) {
-	register ywin *w;
+	ywin *w;
 
 	/* kill old windows */
 
@@ -242,8 +220,8 @@ void end_curses(void) {
  * Open a new window.
  */
 int open_curses(yuser * user, char * title) {
-	register ywin *w;
-	register int wins;
+	ywin *w;
+	int wins;
 
 	/*
 	 * count the open windows.  We want to ensure at least three lines
@@ -278,7 +256,7 @@ int open_curses(yuser * user, char * title) {
  * Close a window.
  */
 void close_curses(yuser * user) {
-	register ywin *w, *p;
+	ywin *w, *p;
 
 	/* zap the old user */
 
@@ -303,9 +281,9 @@ void close_curses(yuser * user) {
 	curses_redraw();
 }
 
-void addch_curses(yuser * user, register ychar c) {
-	register ywin *w;
-	register int x, y;
+void addch_curses(yuser * user, ychar c) {
+	ywin *w;
+	int x, y;
 
 	w = (ywin *) (user->term);
 	getyx(w->win, y, x);
@@ -314,29 +292,29 @@ void addch_curses(yuser * user, register ychar c) {
 		wmove(w->win, y, x);
 }
 
-void move_curses(yuser * user, register int y, register int x) {
-	register ywin *w;
+void move_curses(yuser * user, int y, int x) {
+	ywin *w;
 
 	w = (ywin *) (user->term);
 	wmove(w->win, y, x);
 }
 
-void clreol_curses(register yuser * user) {
-	register ywin *w;
+void clreol_curses(yuser * user) {
+	ywin *w;
 
 	w = (ywin *) (user->term);
 	wclrtoeol(w->win);
 }
 
-void clreos_curses(register yuser * user) {
-	register ywin *w;
+void clreos_curses(yuser * user) {
+	ywin *w;
 
 	w = (ywin *) (user->term);
 	wclrtobot(w->win);
 }
 
-void scroll_curses(register yuser * user) {
-	register ywin *w;
+void scroll_curses(yuser * user) {
+	ywin *w;
 
 	/*
 	 * Curses uses busted scrolling.  In order to call scroll()
@@ -364,8 +342,8 @@ void keypad_curses(bool bf) {
 #endif
 }
 
-void flush_curses(register yuser * user) {
-	register ywin *w;
+void flush_curses(yuser * user) {
+	ywin *w;
 
 	w = (ywin *) (user->term);
 	wrefresh(w->win);
@@ -375,7 +353,7 @@ void flush_curses(register yuser * user) {
  * Clear and redisplay.
  */
 void redisplay_curses(void) {
-	register ywin *w;
+	ywin *w;
 
 	clear();
 	refresh();

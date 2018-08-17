@@ -91,7 +91,8 @@ bin_PROGRAMS = ytalk$(EXEEXT)
 check_PROGRAMS = ptyalloc$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_enable_debug.m4 \
+	$(top_srcdir)/m4/ax_is_release.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
@@ -109,7 +110,7 @@ ptyalloc_LDADD = $(LDADD)
 am_ytalk_OBJECTS = main.$(OBJEXT) term.$(OBJEXT) user.$(OBJEXT) \
 	fd.$(OBJEXT) comm.$(OBJEXT) menu.$(OBJEXT) socket.$(OBJEXT) \
 	rc.$(OBJEXT) exec.$(OBJEXT) getpty.$(OBJEXT) cwin.$(OBJEXT) \
-	mem.$(OBJEXT) vt100.$(OBJEXT) gtalk.$(OBJEXT) \
+	mem.$(OBJEXT) vt100.$(OBJEXT) gtalk.$(OBJEXT) err.$(OBJEXT) \
 	cmdline-ytalk.$(OBJEXT)
 ytalk_OBJECTS = $(am_ytalk_OBJECTS)
 ytalk_LDADD = $(LDADD)
@@ -277,13 +278,14 @@ ytalk_SOURCES = \
 	mem.c \
 	vt100.c \
 	gtalk.c \
+	err.c \
 	cmdline-ytalk.c
 
 ptyalloc_SOURCES = ptyalloc.c getpty.c
 ptyalloc_CPPFLAGS = -DYTALK_TEST
 AM_CFLAGS = -Wall -pedantic
 AM_CPPFLAGS = 
-noinst_HEADERS = header.h cwin.h mem.h socket.h menu.h gtalk.h cmdline-ytalk.h
+noinst_HEADERS = cmdline-ytalk.h comm.h cwin.h err.h exec.h fd.h getpty.h gtalk.h mem.h menu.h rc.h socket.h term.h user.h vt100.h ytypes.h
 all: all-am
 
 .SUFFIXES:
@@ -380,6 +382,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdline-ytalk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwin.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/err.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getpty.Po@am__quote@

@@ -19,29 +19,8 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "socket.h"
-#include "menu.h"
-#include "mem.h"
-#include "gtalk.h"
+#include "comm.h"
 
-#ifdef HAVE_IOVEC_H
-# include <iovec.h>
-#endif
-
-#ifdef HAVE_SYS_UIO_H
-# include <sys/uio.h>
-#endif
-
-#include <time.h>
-
-#define IN_ADDR(s)	((s).sin_addr.s_addr)
-
-/* oops, some systems don't have this one */
-#ifndef INADDR_LOOPBACK
-# define INADDR_LOOPBACK 0x7f000001
-#endif
 
 
 ychar *io_ptr;			/* user input pointer */
@@ -142,7 +121,7 @@ static void send_accept(yuser * to, yuser * from) {
  * Process a Ytalk version 2.? data packet.
  */
 static void v2_process(yuser * user, v2_pack * pack) {
-	register yuser *u;
+	yuser *u;
 	ylong host_addr;
 	char *estr, *name, *host;
 
@@ -231,7 +210,7 @@ static void v2_process(yuser * user, v2_pack * pack) {
  * Process a Ytalk version 3.? data packet.
  */
 static void v3_process_pack(yuser * user, v3_pack * pack) {
-	register yuser *u, *u2;
+	yuser *u, *u2;
 	ylong host_addr, pid;
 	char *estr, *name, *host;
 
@@ -386,9 +365,9 @@ static void v3_process(yuser * user, yaddr ptr) {
  * from the canonical input stream.
  */
 static void read_user(int fd) {
-	register ychar *c, *p;
-	register ssize_t rc;
-	register yuser *user;
+	ychar *c, *p;
+	ssize_t rc;
+	yuser *user;
 	static ychar buf[512];
 
 	if (input_flag) {
@@ -402,8 +381,9 @@ static void read_user(int fd) {
 		return;
 	}
 	if ((rc = read(fd, buf, sizeof(buf))) <= 0) {
-		if (rc < 0 && errno != ECONNRESET && errno != EPIPE)
+		if (rc < 0 && errno != ECONNRESET && errno != EPIPE) {
 			show_error("read_user: read() failed");
+		}
 		free_user(user);
 		return;
 	}
@@ -502,7 +482,7 @@ static void read_user(int fd) {
  * Initial Handshaking:  read the parameter pack from another ytalk user.
  */
 static void ytalk_user(int fd) {
-	register yuser *user, *u;
+	yuser *user, *u;
 	u_short cols;
 
 	if ((user = fd_to_user[fd]) == NULL) {
@@ -542,11 +522,11 @@ static void ytalk_user(int fd) {
 	user->remote = parm;
 
 	/* YTalk >= 3.2.0 handles CR and LF separately */
-	if ((user->remote.vmajor < 3) ||
-	    (user->remote.vmajor == 3 && user->remote.vminor < 2))
+	if (user->remote.vmajor < 3 || (user->remote.vmajor == 3 && user->remote.vminor < 2)) {
 		user->crlf = 0;
-	else
+	} else {
 		user->crlf = 1;
+	}
 
 	user_winch = 1;
 	add_fd(fd, read_user);
@@ -585,9 +565,11 @@ static void ytalk_user(int fd) {
 	}
 	/* tell everybody else he's here! */
 
-	for (u = connect_list; u; u = u->next)
-		if (u != user)
+	for (u = connect_list; u; u = u->next) {
+		if (u != user) {
 			send_import(u, user);
+		}
+	}
 }
 
 /*
@@ -595,14 +577,14 @@ static void ytalk_user(int fd) {
  * is another ytalk user.
  */
 static void connect_user(int fd) {
-	register yuser *user, *u;
+	yuser *user, *u;
 
 	if ((user = fd_to_user[fd]) == NULL) {
 		remove_fd(fd);
 		show_error("connect_user: unknown contact");
 		return;
 	}
-	if (full_read(fd, user->edit, 3) < 0) {
+	if (full_read(fd, (char *) user->edit, 3) < 0) {
 		free_user(user);
 		show_error("connect_user: bad read");
 		return;
@@ -653,8 +635,8 @@ static void connect_user(int fd) {
  * edit keys.
  */
 static void contact_user(int fd) {
-	register yuser *user;
-	register int n;
+	yuser *user;
+	int n;
 	socklen_t socklen;
 	struct sockaddr_in peer;
 	char *hname;
@@ -704,7 +686,7 @@ static void contact_user(int fd) {
  * Do a word wrap.
  */
 static int word_wrap(yuser * user) {
-	register int i, x, bound;
+	int i, x, bound;
 	static ychar temp[20];
 
 	x = user->x;
@@ -727,7 +709,7 @@ static int word_wrap(yuser * user) {
  * that instead of messing up his screen.
  */
 static int announce(yuser * user) {
-	register int rc, fd;
+	int rc, fd;
 
 	errno = 0;
 	while ((rc = send_dgram(user, AUTO_LOOK_UP)) == 0) {
@@ -774,8 +756,8 @@ static int announce(yuser * user) {
 /*
  * Invite a user into the conversation.
  */
-yuser * invite(register char * name, int send_announce) {
-	register int rc;
+yuser * invite(char * name, int send_announce) {
+	int rc;
 	char *hisname, *hishost, *histty;
 	yuser *user;
 
@@ -891,18 +873,19 @@ yuser * invite(register char * name, int send_announce) {
 	user->last_invite = (ylong) time(NULL);
 	if (send_announce && (rc = announce(user)) != 0) {
 		(void) send_dgram(user, DELETE_INVITE);
-		if (rc > 0)
+		if (rc > 0) {
 #ifdef HAVE_SNPRINTF
 			snprintf(errstr, MAXERR, "%s refusing messages", user->full_name);
 #else
 			sprintf(errstr, "%s refusing messages", user->full_name);
 #endif
-		else
+		} else {
 #ifdef HAVE_SNPRINTF
 			snprintf(errstr, MAXERR, "%s not logged in", user->full_name);
 #else
 			sprintf(errstr, "%s not logged in", user->full_name);
 #endif
+		}
 		show_error(errstr);
 		free_user(user);
 		return NULL;
@@ -915,7 +898,7 @@ yuser * invite(register char * name, int send_announce) {
  * Periodic housecleaning.
  */
 void house_clean(void) {
-	register yuser *u, *next;
+	yuser *u, *next;
 	ylong t;
 	static char estr[80];
 	static ylong last_auto = 0;
@@ -935,11 +918,13 @@ void house_clean(void) {
 		if (t - u->last_invite >= 30) {
 			(void) send_dgram(u, LEAVE_INVITE);
 			u->last_invite = t = (ylong) time(NULL);
-			if (!(def_flags & FL_RING))
+			if (!(def_flags & FL_RING)) {
 				continue;
+			}
 			if (def_flags & FL_PROMPTRING) {
-				if (input_flag)
+				if (input_flag) {
 					continue;
+				}
 #ifdef HAVE_SNPRINTF
 				snprintf(estr, sizeof(estr), "Rering %s?", u->full_name);
 #else
@@ -947,8 +932,9 @@ void house_clean(void) {
 #endif
 				answer = yes_no(estr);
 				t = (ylong) time(NULL);
-				if (answer == 'n')
+				if (answer == 'n') {
 					continue;
+				}
 			}
 			if ((rc = announce(u)) != 0) {
 				(void) send_dgram(u, DELETE_INVITE);
@@ -985,18 +971,19 @@ void rering_all(void) {
 		u->last_invite = (ylong) time(NULL);
 		if ((rc = announce(u)) != 0) {
 			(void) send_dgram(u, DELETE_INVITE);
-			if (rc > 0)
+			if (rc > 0) {
 #ifdef HAVE_SNPRINTF
 				snprintf(errstr, MAXERR, "%s refusing messages", u->full_name);
 #else
 				sprintf(errstr, "%s refusing messages", u->full_name);
 #endif
-			else
+			} else {
 #ifdef HAVE_SNPRINTF
 				snprintf(errstr, MAXERR, "%s not logged in", u->full_name);
 #else
 				sprintf(errstr, "%s not logged in", u->full_name);
 #endif
+			}
 			show_error(errstr);
 			free_user(u);
 		}
@@ -1004,16 +991,18 @@ void rering_all(void) {
 }
 
 void send_winch(yuser * user) {
-	register yuser *u;
+	yuser *u;
 
 	v3w.rows = htons(user->t_rows);
 	v3w.cols = htons(user->t_cols);
 
 	if (user == me) {
 		v3w.code = V3_MYWIN;
-		for (u = connect_list; u; u = u->next)
-			if (u->remote.vmajor > 2)
+		for (u = connect_list; u; u = u->next) {
+			if (u->remote.vmajor > 2) {
 				send_oob(u->fd, (yaddr)&v3w, V3_WINCHLEN);
+			}
+		}
 		winch_exec();
 	} else if (user->remote.vmajor > 2) {
 		v3w.code = V3_YOURWIN;
@@ -1022,27 +1011,31 @@ void send_winch(yuser * user) {
 }
 
 void send_region(void) {
-	register yuser *u;
+	yuser *u;
 
 	v3w.code = V3_REGION;
 	v3w.rows = htons(me->rows);
 	v3w.cols = htons(me->cols);
 
-	for (u = connect_list; u; u = u->next)
-		if (u->remote.vmajor > 2)
+	for (u = connect_list; u; u = u->next) {
+		if (u->remote.vmajor > 2) {
 			send_oob(u->fd, (yaddr)&v3w, V3_WINCHLEN);
+		}
+	}
 }
 
 void send_end_region(void) {
-	register yuser *u;
+	yuser *u;
 
 	v3w.code = V3_REGION;
 	v3w.rows = htons(0);
 	v3w.cols = htons(0);
 
-	for (u = connect_list; u; u = u->next)
-		if (u->remote.vmajor > 2)
+	for (u = connect_list; u; u = u->next) {
+		if (u->remote.vmajor > 2) {
 			send_oob(u->fd, (yaddr)&v3w, V3_WINCHLEN);
+		}
+	}
 }
 
 /*
@@ -1050,7 +1043,7 @@ void send_end_region(void) {
  * if the given user is either "me" or NULL.
  */
 void send_users(yuser * user, ychar * buf, int len, ychar * cbuf, int clen) {
-	register yuser *u;
+	yuser *u;
 	ychar *o, *b, *co, *cb;
 	static ychar *o_buf = NULL;
 	static ychar *o_cbuf = NULL;
@@ -1087,21 +1080,24 @@ void send_users(yuser * user, ychar * buf, int len, ychar * cbuf, int clen) {
 				write(user->fd, buf, (size_t)(b - buf));
 		}
 	} else {
-		for (u = connect_list; u; u = u->next)
-			if (user->remote.vmajor > 2)
-				if (u->crlf == 1)
+		for (u = connect_list; u; u = u->next) {
+			if (user->remote.vmajor > 2) {
+				if (u->crlf == 1) {
 					write(u->fd, o_cbuf, (size_t)(co - o_cbuf));
-				else
+				} else {
 					write(u->fd, o_buf, (size_t)(o - o_buf));
-			else
+				}
+			} else {
 				write(u->fd, buf, (size_t)(b - buf));
+			}
+		}
 	}
 }
 
 /*
  * Display user input.  Emulate ANSI.
  */
-void show_input(yuser * user, register ychar * buf, register int len) {
+void show_input(yuser * user, ychar * buf, int len) {
 	if (user->vt.got_esc) {
 process_esc:
 		for (; len > 0; len--, buf++) {
@@ -1303,14 +1299,15 @@ void my_input(yuser * user, ychar * buf, int len) {
 		if (len > 0) {
 			buf++, len--;
 			show_main_menu();
-			if (len <= 0)
+			if (len <= 0) {
 				update_menu();
+			}
 		}
 	}
 }
 
 void lock_flags(ylong flags) {
-	register yuser *u;
+	yuser *u;
 
 	me->flags = flags | FL_LOCKED;
 
@@ -1318,13 +1315,15 @@ void lock_flags(ylong flags) {
 
 	v3f.code = V3_LOCKF;
 	v3f.flags = htonl(me->flags);
-	for (u = connect_list; u; u = u->next)
-		if (u->remote.vmajor > 2)
+	for (u = connect_list; u; u = u->next) {
+		if (u->remote.vmajor > 2) {
 			send_oob(u->fd, (yaddr)&v3f, V3_FLAGSLEN);
+		}
+	}
 }
 
 void unlock_flags(void) {
-	register yuser *u;
+	yuser *u;
 
 	me->flags = def_flags;
 
@@ -1332,7 +1331,9 @@ void unlock_flags(void) {
 
 	v3f.code = V3_UNLOCKF;
 	v3f.flags = htonl(me->flags);
-	for (u = connect_list; u; u = u->next)
-		if (u->remote.vmajor > 2)
+	for (u = connect_list; u; u = u->next) {
+		if (u->remote.vmajor > 2) {
 			send_oob(u->fd, (yaddr)&v3f, V3_FLAGSLEN);
+		}
+	}
 }

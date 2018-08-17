@@ -17,26 +17,53 @@
  * GNU General Public License for more details.
  *
  */
-#ifdef HAVE_NCURSES
-#include <ncurses.h>
-#else
-#include <curses.h>
+
+#ifndef YTALK_CWIN_H_
+#define YTALK_CWIN_H_
+
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
 #endif
-extern void init_curses();
-extern void end_curses();
-extern int open_curses( /* yuser, title */ );
-extern void close_curses( /* yuser */ );
-extern void addch_curses(yuser *user, register ychar c);
-extern void move_curses( /* yuser, y, x */ );
-extern void clreol_curses( /* yuser */ );
-extern void clreos_curses( /* yuser */ );
-extern void scroll_curses( /* yuser */ );
-extern void keypad_curses(bool bf);
-extern void flush_curses( /* yuser */ );
-extern void redisplay_curses();
-extern void set_raw_curses();
-extern void set_cooked_curses();
+
+#ifdef HAVE_NCURSES
+	#include <ncurses.h>
+#else
+	#include <curses.h>
+#endif
+
+#include "err.h"
+#include "mem.h"
+#include "term.h"
+#include "fd.h"
+
+#include <signal.h>
+
+typedef struct _ywin {
+	struct _ywin *next;	/* next ywin in linked list */
+	yuser *user;		/* user pointer */
+	WINDOW *win;		/* window pointer */
+	int height, width;	/* height and width in characters */
+	int row, col;		/* row and column position on screen */
+	char *title;		/* window title string */
+} ywin;
+
+void init_curses();
+void end_curses();
+int open_curses( /* yuser, title */ );
+void close_curses( /* yuser */ );
+void addch_curses(yuser *user, ychar c);
+void move_curses( /* yuser, y, x */ );
+void clreol_curses( /* yuser */ );
+void clreos_curses( /* yuser */ );
+void scroll_curses( /* yuser */ );
+void keypad_curses(bool bf);
+void flush_curses( /* yuser */ );
+void redisplay_curses();
+void set_raw_curses();
+void set_cooked_curses();
 
 #ifndef getyx
-# define getyx(w,y,x)	y = w->_cury, x = w->_curx
+# define getyx(w,y,x)	(getcuryx(w, y, x))
 #endif
+
+#endif // YTALK_CWIN_H_

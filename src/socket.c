@@ -19,33 +19,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "menu.h"
 #include "socket.h"
-#include "mem.h"
-
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
-
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#else
-ylong inet_addr();
-char *inet_ntoa();
-#endif
-
-#ifdef _AIX
-# include <sys/select.h>
-#endif
 
 struct _talkd talkd[MAXDAEMON + 1];
 int daemons = 0;
@@ -61,10 +35,6 @@ static struct sockaddr_in autosock;	/* auto invite socket */
 static ylong autoid[MAXDAEMON + 1];	/* auto invite seq numbers */
 static ylong announce_id = 0;	/* announce sequence id */
 static readdr *readdr_list = NULL;	/* list of re-addresses */
-
-#define IN_ADDR(s)	((s).sin_addr.s_addr)
-#define IN_PORT(s)	((s).sin_port)
-#define SOCK_EQUAL(s,c)	(IN_PORT(s) == IN_PORT(c) && IN_ADDR(s) == IN_ADDR(c))
 
 /* ---- local functions ---- */
 
@@ -221,8 +191,8 @@ static void init_autoport(void) {
  * Fill the socket address field with the appropriate return address for the
  * host I'm sending to.
  */
-static void place_my_address(BSD42_SOCK *sock, register ylong addr) {
-	register readdr *r;
+static void place_my_address(BSD42_SOCK *sock, ylong addr) {
+	readdr *r;
 
 	for (r = readdr_list; r != NULL; r = r->next)
 		if (((r->from_addr & r->from_mask) == (me->host_addr & r->from_mask))
@@ -384,8 +354,8 @@ static int sendit(ylong addr /*host internet address */, int d /* daemon number 
  * version(s) of the daemon are running.
  */
 static int find_daemon(ylong addr) {
-	register hostinfo *h;
-	register int n, i, d;
+	hostinfo *h;
+	int n, i, d;
 	CTL_MSG m1;
 	CTL_MSG42 m2;
 	struct sockaddr_in remote_daemon;
@@ -545,8 +515,8 @@ void init_socket(void) {
  * it does not gracefully shut systems down.
  */
 void close_all(void) {
-	register yuser *u;
-	register int d;
+	yuser *u;
+	int d;
 
 	for (u = user_list; u; u = u->unext) {
 		if (u->fd > 0)
@@ -785,7 +755,7 @@ int newsock(yuser *user) {
  * Connect to another user's communication socket.
  */
 int connect_to(yuser *user) {
-	register yuser *u;
+	yuser *u;
 	int fd;
 	socklen_t socklen;
 	struct sockaddr_in sock, orig_sock;
@@ -883,7 +853,7 @@ char * host_name(ylong addr) {
  * differently-addressed "bar.com" to host "xyzzy.com".
  */
 void readdress_host(char *from_id, char *to_id, char *on_id) {
-	register readdr *new;
+	readdr *new;
 	ylong from_addr, to_addr, on_addr;
 	ylong from_mask, to_mask, on_mask;
 

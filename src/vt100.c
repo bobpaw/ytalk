@@ -19,7 +19,7 @@
  *
  */
 
-#include "header.h"
+#include "vt100.h"
 
 void vt100_process(yuser *user, char data) {
 	int i;

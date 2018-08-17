@@ -19,55 +19,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include <pwd.h>
-
-#ifdef HAVE_SYS_IOCTL_H
-	#include <sys/ioctl.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-	#include <fcntl.h>
-#endif
-
-#include <signal.h>
-#include <sys/wait.h>
-
-#ifdef HAVE_STROPTS_H
-	#include <stropts.h>
-#endif
-
-#ifdef HAVE_SYS_CONF_H
-	#include <sys/conf.h>
-#endif
-
-#ifdef HAVE_TERMIOS_H
-	#include <termios.h>
-#else
-	#ifdef HAVE_SGTTY_H
-		#include <sgtty.h>
-		#ifdef hpux
-			#include <sys/bsdtty.h>
-		#endif
-	#endif
-#endif
-
-#ifdef HAVE_SYS_STAT_H
-	#include <sys/stat.h>
-#endif
-
-#ifdef HAVE_OPENPTY
-	#ifdef HAVE_UTIL_H
-		#include <util.h>
-	#else
-		int openpty(int *, int *, char *, struct termios *, struct winsize *);
-	#endif
-#endif
-
-#if defined(HAVE_PTSNAME) && defined(HAVE_GRANTPT) && defined(HAVE_UNLOCKPT)
-	#define USE_DEV_PTMX
-#endif
+#include "exec.h"
 
 int running_process = 0;	/* flag: is process running? */
 static int pid;			/* currently executing process id */
@@ -79,7 +31,7 @@ static int prows, pcols;	/* saved rows, cols */
 #ifndef HAVE_SETSID
 static int setsid(void) {
 	#ifdef TIOCNOTTY
-	register int fd;
+	int fd;
 
 	if ((fd = open("/dev/tty", O_RDWR)) >= 0) {
 		ioctl(fd, TIOCNOTTY);
@@ -99,7 +51,7 @@ int needtopush = 0;
 #endif
 
 static void exec_input(int fd) {
-	register int rc;
+	int rc;
 	static ychar buf[MAXBUF];
 
 	if ((rc = read(fd, buf, MAXBUF)) <= 0) {
@@ -113,13 +65,13 @@ static void exec_input(int fd) {
 }
 
 static void calculate_size(int * rows, int * cols) {
-	register yuser *u;
+	yuser *u;
 
 	*rows = me->t_rows;
 	*cols = me->t_cols;
 
 	for (u = connect_list; u; u = u->next)
-		if (u->remote.vmajor > 2) {
+		if (u->remote.vmajor >= 3) {
 			if (u->remote.my_rows > 1 && u->remote.my_rows < *rows)
 				*rows = u->remote.my_rows;
 			if (u->remote.my_cols > 1 && u->remote.my_cols < *cols)
@@ -133,7 +85,7 @@ static void calculate_size(int * rows, int * cols) {
  * Execute a command inside my window.  If command is NULL, then execute a
  * shell.
  */
-void execute(char * command) {
+void execute (char * command) {
 	int fd;
 #ifdef HAVE_PUTENV
 	char yvenv[25];
@@ -299,7 +251,7 @@ void execute(char * command) {
 /*
  * Send input to the command shell.
  */
-void update_exec(void) {
+void update_exec (void) {
 	write(pfd, io_ptr, (size_t) io_len);
 	io_len = 0;
 }
@@ -307,7 +259,7 @@ void update_exec(void) {
 /*
  * Kill the command shell.
  */
-void kill_exec() {
+void kill_exec (void) {
 	if (!running_process)
 		return;
 	remove_fd(pfd);
@@ -321,7 +273,7 @@ void kill_exec() {
 /*
  * Send a SIGWINCH to the process.
  */
-void winch_exec(void) {
+void winch_exec (void) {
 	int rows, cols;
 
 	if (!running_process)

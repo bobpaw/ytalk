@@ -18,28 +18,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "mem.h"
-
-#ifdef HAVE_SYS_IOCTL_H
-# include <sys/ioctl.h>
-#endif
-
-#ifdef HAVE_TERMIOS_H
-# include <termios.h>
-#else
-# ifdef HAVE_SGTTY
-#  include <sgtty.h>
-#  ifdef hpux
-#   include <sys/bsdtty.h>
-#  endif
-#  define USE_SGTTY
-# endif
-#endif
-
-#include "cwin.h"
-#include "menu.h"
+#include "term.h"
 
 static int term_type = 0;
 
@@ -191,7 +170,7 @@ void end_term(void) {
 /*
  * Open a new user window.
  */
-int open_term(register yuser *user, register char *title) {
+int open_term(yuser *user, char *title) {
 	if (open_curses(user, title) != 0)
 		return -1;
 	user->x = user->y = 0;
@@ -203,8 +182,8 @@ int open_term(register yuser *user, register char *title) {
 /*
  * Close a user window.
  */
-void close_term(register yuser *user) {
-	register int i;
+void close_term(yuser *user) {
+	int i;
 
 	if (user->scr) {
 		close_curses(user);
@@ -222,7 +201,7 @@ void close_term(register yuser *user) {
 /*
  * Place a character.
  */
-void addch_term(register yuser *user, register ychar c) {
+void addch_term(yuser *user, ychar c) {
 	if (is_printable(c)) {
 		addch_curses(user, c);
 		user->scr[user->y][user->x] = c;
@@ -238,7 +217,7 @@ void addch_term(register yuser *user, register ychar c) {
 /*
  * Move the cursor.
  */
-void move_term(register yuser *user, register int y, register int x) {
+void move_term(yuser *user, int y, int x) {
 	if (y < 0 || y > user->sc_bot)
 		y = user->sc_bot;
 	if (x < 0 || x >= user->cols) {
@@ -267,9 +246,9 @@ void fill_term(yuser *user, int y1, int x1, int y2, int x2, ychar c) {
 /*
  * Clear to EOL.
  */
-void clreol_term(register yuser *user) {
-	register int j;
-	register ychar *c;
+void clreol_term(yuser *user) {
+	int j;
+	ychar *c;
 
 	if (user->cols < user->t_cols) {
 		c = user->scr[user->y] + user->x;
@@ -289,9 +268,9 @@ void clreol_term(register yuser *user) {
 /*
  * Clear to EOS.
  */
-void clreos_term(register yuser *user) {
-	register int j, i;
-	register ychar *c;
+void clreos_term(yuser *user) {
+	int j, i;
+	ychar *c;
 	int x, y;
 
 	if (user->cols < user->t_cols || user->rows < user->t_rows) {
@@ -318,9 +297,9 @@ void clreos_term(register yuser *user) {
 /*
  * Scroll window.
  */
-void scroll_term(register yuser *user) {
-	register int i;
-	register ychar *c;
+void scroll_term(yuser *user) {
+	int i;
+	ychar *c;
 	int sy, sx;
 
 	if (user->sc_bot > user->sc_top) {
@@ -349,9 +328,9 @@ void scroll_term(register yuser *user) {
 /*
  * Reverse-scroll window.
  */
-void rev_scroll_term(register yuser *user) {
-	register int i;
-	register ychar *c;
+void rev_scroll_term(yuser *user) {
+	int i;
+	ychar *c;
 	int sy, sx;
 
 	if (user->sc_bot > user->sc_top) {
@@ -374,14 +353,14 @@ void rev_scroll_term(register yuser *user) {
 /*
  * Flush window output.
  */
-void flush_term(register yuser *user) {
+void flush_term(yuser *user) {
 	flush_curses(user);
 }
 
 /*
  * Rub one character.
  */
-void rub_term(register yuser *user) {
+void rub_term(yuser *user) {
 	if (user->x > 0) {
 		if (user->x == user->cols - 1)
 			user->onend = 0;
@@ -400,8 +379,8 @@ void rub_term(register yuser *user) {
 /*
  * Rub one word.
  */
-void word_term(register yuser *user) {
-	register int x;
+void word_term(yuser *user) {
+	int x;
 
 	for (x = user->x - 1; x >= 0 && user->scr[user->y][x] == ' '; x--)
 		continue;
@@ -417,7 +396,7 @@ void word_term(register yuser *user) {
 /*
  * Kill current line.
  */
-void kill_term(register yuser *user) {
+void kill_term(yuser *user) {
 	if (user->x > 0) {
 		move_term(user, user->y, 0);
 		clreol_term(user);
@@ -427,7 +406,7 @@ void kill_term(register yuser *user) {
 /*
  * Expand a tab.  We use non-destructive tabs.
  */
-void tab_term(register yuser *user) {
+void tab_term(yuser *user) {
 	int i;
 	/* Find nearest tab and jump to it. */
 	if (user->x < user->t_cols) {
@@ -443,8 +422,8 @@ void tab_term(register yuser *user) {
 /*
  * Process a line feed.
  */
-void lf_term(register yuser *user) {
-	register int new_y, next_y;
+void lf_term(yuser *user) {
+	int new_y, next_y;
 
 	new_y = user->y + 1;
 	if (user->flags & FL_RAW) {
@@ -476,8 +455,8 @@ void lf_term(register yuser *user) {
 /*
  * Process a newline.
  */
-void newline_term(register yuser *user) {
-	register int new_y, next_y;
+void newline_term(yuser *user) {
+	int new_y, next_y;
 
 	new_y = user->y + 1;
 	if (user->flags & FL_RAW) {
@@ -510,9 +489,9 @@ void newline_term(register yuser *user) {
 /*
  * Insert lines.
  */
-void add_line_term(register yuser *user, int num) {
-	register ychar *c;
-	register int i;
+void add_line_term(yuser *user, int num) {
+	ychar *c;
+	int i;
 
 	if (num == 1 && user->y == 0)
 		rev_scroll_term(user);
@@ -548,9 +527,9 @@ void add_line_term(register yuser *user, int num) {
 /*
  * Delete lines.
  */
-void del_line_term(register yuser *user, int num) {
-	register ychar *c;
-	register int i;
+void del_line_term(yuser *user, int num) {
+	ychar *c;
+	int i;
 
 	if (num == 1 && user->y == 0)
 		scroll_term(user);
@@ -582,7 +561,7 @@ void del_line_term(register yuser *user, int num) {
 	}
 }
 
-static void copy_text(register ychar *fr, register ychar *to, register int count) {
+static void copy_text(ychar *fr, ychar *to, int count) {
 	if (to < fr) {
 		for (; count > 0; count--)
 			*(to++) = *(fr++);
@@ -597,9 +576,9 @@ static void copy_text(register ychar *fr, register ychar *to, register int count
 /*
  * Add chars.
  */
-void add_char_term(register yuser *user, int num) {
-	register ychar *c;
-	register int i;
+void add_char_term(yuser *user, int num) {
+	ychar *c;
+	int i;
 
 	/* find number of remaining non-blank chars */
 
@@ -628,9 +607,9 @@ void add_char_term(register yuser *user, int num) {
 /*
  * Delete chars.
  */
-void del_char_term(register yuser *user, int num) {
-	register ychar *c;
-	register int i;
+void del_char_term(yuser *user, int num) {
+	ychar *c;
+	int i;
 
 	/* find number of remaining non-blank chars */
 
@@ -659,9 +638,9 @@ void del_char_term(register yuser *user, int num) {
 /*
  * Redraw a user's window.
  */
-void redraw_term(register yuser *user, register int y) {
-	register int x, spaces;
-	register ychar *c;
+void redraw_term(yuser *user, int y) {
+	int x, spaces;
+	ychar *c;
 
 	for (; y < user->t_rows; y++) {
 		move_curses(user, y, 0);
@@ -698,8 +677,8 @@ void redraw_term(register yuser *user, register int y) {
  * height and width.
  */
 static int first_interesting_row(yuser *user, int height, int width) {
-	register int j, i;
-	register ychar *c;
+	int j, i;
+	ychar *c;
 
 	if (height < user->t_rows) {
 		j = (user->y + 1) - height;
@@ -727,8 +706,8 @@ static int first_interesting_row(yuser *user, int height, int width) {
  * Called when a user's window has been resized.
  */
 void resize_win(yuser *user, int height, int width) {
-	register int j, i;
-	register ychar *c, **new_scr;
+	int j, i;
+	ychar *c, **new_scr;
 	int new_y, y_pos;
 
 	if (height == user->t_rows && width == user->t_cols)
@@ -818,7 +797,7 @@ void resize_win(yuser *user, int height, int width) {
  * Draw a nice box.
  */
 static void draw_box(yuser *user, int height, int width, char c) {
-	register int i;
+	int i;
 
 	if (width < user->t_cols) {
 		for (i = 0; i < height; i++) {
@@ -847,7 +826,7 @@ static void draw_box(yuser *user, int height, int width, char c) {
  * Set the virtual terminal size, ie: the display region.
  */
 void set_win_region(yuser *user, int height, int width) {
-	register int x, y;
+	int x, y;
 	int old_height, old_width;
 
 	if (height < 2 || height > user->t_rows)
@@ -946,8 +925,8 @@ void msg_term(yuser *user, char *str) {
  * Spew terminal contents to a file descriptor.
  */
 void spew_term(yuser *user, int fd, int rows, int cols) {
-	register ychar *c, *e;
-	register int len;
+	ychar *c, *e;
+	int len;
 	int y;
 	static char tmp[20];
 
@@ -1014,7 +993,7 @@ void spew_term(yuser *user, int fd, int rows, int cols) {
  * This is an unadvertised function.
  */
 void raw_term(yuser *user, int y, int x, ychar *str, int len) {
-	register ychar *c;
+	ychar *c;
 
 	if (y < 0 || y >= user->t_rows)
 		return;

@@ -19,12 +19,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "mem.h"
-#include <pwd.h>
-
-#define IS_WHITE(c)	((c)==' ' || (c)=='\t' || (c)=='\n')
+#include "rc.h"
 
 extern char *vhost;
 
@@ -33,7 +28,7 @@ static struct alias *alias0 = NULL;
 /* ---- local functions ---- */
 
 static char * get_word(char ** p) {
-	register char *c, *out;
+	char *c, *out;
 
 	c = *p;
 	while (IS_WHITE(*c))

@@ -18,13 +18,7 @@
  *
  */
 
-#include "config.h"
-#include "header.h"
-#include "menu.h"
-#include "mem.h"
-
-#include <pwd.h>
-#include <string.h>
+#include "user.h"
 
 extern int dont_change_my_addr;
 
@@ -42,7 +36,7 @@ static ylong daemon_id;		/* running daemon ID counter */
 static int passwd_opened = 0;
 
 static char * user_name(ylong uid) {
-	register struct passwd *pw;
+	struct passwd *pw;
    char* c;
    if ((c = getenv("USER")) != NULL) return strdup(c);
 	passwd_opened = 1;
@@ -59,7 +53,7 @@ static void close_passwd(void) {
 }
 
 void generate_full_name(yuser *user) {
-	register char *c, *d, *ce;
+	char *c, *d, *ce;
 
 	if (user->full_name == NULL)
 		user->full_name = get_mem(50);
@@ -83,7 +77,7 @@ void generate_full_name(yuser *user) {
 }
 
 static void assign_key(yuser *user) {
-	register ychar old;
+	ychar old;
 	static ychar key = 'a';
 
 	if (user->key != '\0' || user == me || user_list == NULL)
@@ -170,7 +164,7 @@ void init_user(char *vhost) {
  * Create a new user record.
  */
 yuser *new_user(char *name, char *hostname, char *tty) {
-	register yuser *out, *u;
+	yuser *out, *u;
 	ylong addr;
 
 	/* find the host address */
@@ -257,7 +251,7 @@ static void clear_user(yuser *user) {
 }
 
 void free_user(yuser *user) {
-	register yuser *u;
+	yuser *u;
 
 	/* remove him from the various blacklists */
 
@@ -308,7 +302,7 @@ void free_user(yuser *user) {
  * it is not checked.
  */
 yuser * find_user(char *name, ylong host_addr, ylong pid) {
-	register yuser *u;
+	yuser *u;
 
 	for (u = user_list; u; u = u->unext)
 		if (name == NULL || strcmp(u->user_name, name) == 0)
