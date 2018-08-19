@@ -45,8 +45,8 @@
 #define YTP_NEW	27		/* YTalk versions 3.0 and up */
 
 #define VMAJOR 3
-#define VMINOR 3
-#define VPATCH 1
+#define VMINOR 4
+#define VPATCH 0
 
 /* ---- types ---- */
 

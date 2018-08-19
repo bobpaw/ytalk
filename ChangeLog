@@ -1,5 +1,29 @@
 YTalk: Multi-user talk client
-For news and updates, visit http://www.impul.se/ytalk/
+For news and updates, visit https://github.com/bobpaw/ytalk/
+Formerly, http://impul.se/ytalk/
+
+version 3.4.0
+	New features:
+	* Added Travis CI control file
+	* Now uses gengetopt for command line options
+	* Add ax_is_release and ax_check_enable_debug to m4
+
+	Changes:
+	* Moved to GitHub
+	* New Maintainer: Aiden Woodruff <aiden.woodruff@gmail.com>
+	* Update all functions from old function declaration
+	* Removed header.h
+	* Updated noinst_HEADERS
+	* Moved typedefs into ytypes.h
+	* Moved error functions from main.c into err.c
+	* Moved includes, structs, and defines from .c files into headers
+
+	Bug fixes:
+	* Explicit casts on full_read calls
+	* cwin.h change getyx to calling getcuryx
+	* Fix how sanity calls version
+	* Change test to getpty test as shell file so make maintainer-clean
+	  works
 
 version 3.3.0
 	New features:
